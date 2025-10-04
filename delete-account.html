@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delete Account - Gutopia</title>
+    <meta
+      name="description"
+      content="Information on how to delete your Gutopia account."
+    />
+    <link rel="icon" href="assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0c1b;
+        --fg: #cdcdde;
+        --muted: #cdd1ef;
+        --brand: #6c5ce7;
+        --card: rgba(255, 255, 255, 0.05);
+        --stroke: rgba(255, 255, 255, 0.12);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        font-family: Sora, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      a {
+        color: var(--brand);
+        text-decoration: none;
+      }
+      header,
+      footer {
+        padding: 20px 14px;
+        text-align: center;
+      }
+      .container {
+        width: min(1100px, 92vw);
+        margin: 0 auto;
+      }
+      .hero {
+        padding: 5px 16px 24px;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: clamp(42px, 8vw, 84px);
+        margin: 0 0 10px;
+      }
+      .hero .tag {
+        display: inline-block;
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: #b9bfe0;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+      .hero p {
+        max-width: 860px;
+        margin: 10px auto;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.7;
+      }
+      .links {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #a7acc7;
+      }
+      
+      #headerImg {
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        margin-top: 15px;
+        height: 125px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="index.html">
+          <img
+            id="headerImg"
+            src="assets/app-icon.png"
+            alt="App icon"
+          />
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <h1>Delete Account</h1>
+          <p>
+            If you'd like to delete your account, please email us at <a href="mailto:delete@gutopia.ai?subject=Account%20Deletion%20Request&body=Please%20delete%20my%20account.%20My%20email%20address%20is:">delete@gutopia.ai</a> and include your user email address in the email.
+          </p>
+          <div class="links">
+            <a href="index.html">Back to Home</a> ·
+            <a href="privacy.html">Privacy Policy</a> ·
+            <a href="terms.html">Terms of Service</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <small
+          >© <span id="y"></span> Gutopia. All rights reserved. · Effective &
+          Last Updated: September 21, 2025</small
+        >
+      </div>
+    </footer>
+    <script>
+      document.getElementById("y").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

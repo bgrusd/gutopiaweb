@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gutopia — Beta Testing Signup</title>
+    <meta
+      name="description"
+      content="Sign up for early access to test Gutopia, the private AI-powered gut health companion."
+    />
+    <link rel="icon" href="assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0c1b;
+        --fg: #cdcdde;
+        --muted: #cdd1ef;
+        --brand: #6c5ce7;
+        --card: rgba(255, 255, 255, 0.05);
+        --stroke: rgba(255, 255, 255, 0.12);
+        --success: #00d374;
+        --error: #ff6b6b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100vh;
+      }
+      body {
+        font-family: Sora, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: var(--brand);
+        text-decoration: none;
+      }
+      header {
+        padding: 20px 14px;
+        text-align: center;
+      }
+      main {
+        flex: 1;
+        padding: 20px 14px;
+      }
+      footer {
+        padding: 20px 14px;
+        text-align: center;
+      }
+      .container {
+        width: min(600px, 92vw);
+        margin: 0 auto;
+      }
+      #headerImg {
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        height: 80px;
+      }
+      .form-container {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        padding: 32px;
+        margin: 24px auto;
+      }
+      h1 {
+        font-size: 32px;
+        margin: 0 0 12px;
+        text-align: center;
+      }
+      .subtitle {
+        color: var(--muted);
+        text-align: center;
+        margin-bottom: 32px;
+        line-height: 1.6;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      input[type="text"],
+      input[type="email"],
+      select {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--stroke);
+        border-radius: 8px;
+        color: var(--fg);
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.2s ease;
+      }
+      input[type="text"]:focus,
+      input[type="email"]:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--brand);
+        background: rgba(255, 255, 255, 0.1);
+      }
+      input::placeholder {
+        color: #6a6f8c;
+      }
+      select {
+        cursor: pointer;
+      }
+      select option {
+        background: var(--bg);
+      }
+      .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      input[type="checkbox"] {
+        margin-top: 4px;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--brand);
+      }
+      .checkbox-label {
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .conditions-note {
+        background: rgba(108, 92, 231, 0.1);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 14px 28px;
+        background: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .submit-btn:hover:not(:disabled) {
+        background: #5b4bd6;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+      }
+      .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: var(--muted);
+        font-size: 14px;
+        transition: color 0.2s ease;
+      }
+      .back-link:hover {
+        color: var(--brand);
+      }
+      .success-message,
+      .error-message {
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+      }
+      .success-message {
+        background: rgba(0, 211, 116, 0.1);
+        border: 1px solid rgba(0, 211, 116, 0.3);
+        color: var(--success);
+      }
+      .error-message {
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: var(--error);
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--stroke);
+        border-top-color: var(--brand);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="index.html">
+          <img id="headerImg" src="assets/app-icon.png" alt="Gutopia" />
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <a href="index.html" class="back-link">← Back to home</a>
+
+        <div class="form-container">
+          <h1>Beta Testing Signup</h1>
+          <p class="subtitle">
+            Be among the first to try Gutopia and help shape the future of gut health management.
+          </p>
+
+          <div class="success-message" id="successMessage">
+            Thank you for signing up! We'll contact you when beta testing begins.
+          </div>
+
+          <div class="error-message" id="errorMessage">
+            Something went wrong. Please try again or email us at support@gutopia.app
+          </div>
+
+          <form id="betaSignupForm" action="https://formspree.io/f/xwprbddd" method="POST">
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder="John Doe"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder="john@example.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="platform">Platform *</label>
+              <select id="platform" name="platform" required>
+                <option value="">Select your platform</option>
+                <option value="ios">iOS (iPhone/iPad)</option>
+                <option value="android">Android</option>
+                <option value="both">Both iOS and Android</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="condition">Primary Condition (optional)</label>
+              <select id="condition" name="condition">
+                <option value="">Select a condition</option>
+                <option value="crohns">Crohn's Disease</option>
+                <option value="uc">Ulcerative Colitis</option>
+                <option value="ibs">IBS</option>
+                <option value="other">Other GI Condition</option>
+                <option value="none">No specific condition</option>
+              </select>
+            </div>
+
+            <!-- Hidden fields for better organization in Formspree -->
+            <input type="hidden" name="_subject" value="New Gutopia Beta Signup!" />
+            <input type="hidden" name="_template" value="table" />
+
+            <div class="conditions-note">
+              Your information will be used solely for beta testing coordination. We'll send you TestFlight (iOS) or Play Store testing links when available.
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="privacy" name="privacy" required />
+              <label for="privacy" class="checkbox-label">
+                I agree to participate in beta testing and understand this is pre-release software that may contain bugs. I've read the <a href="privacy.html" target="_blank">Privacy Policy</a> and <a href="terms.html" target="_blank">Terms of Service</a>.
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              Sign Up for Beta
+            </button>
+
+            <div class="loading" id="loading">
+              <span class="spinner"></span>
+              Submitting...
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <small>© <span id="year"></span> Gutopia. All rights reserved.</small>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      const form = document.getElementById('betaSignupForm');
+      const successMsg = document.getElementById('successMessage');
+      const errorMsg = document.getElementById('errorMessage');
+      const loading = document.getElementById('loading');
+      const submitBtn = form.querySelector('.submit-btn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Hide any previous messages
+        successMsg.style.display = 'none';
+        errorMsg.style.display = 'none';
+
+        // Show loading state
+        loading.style.display = 'block';
+        submitBtn.disabled = true;
+
+        // Create FormData object for Formspree
+        const formData = new FormData(form);
+
+        // Add timestamp
+        formData.append('timestamp', new Date().toISOString());
+
+        try {
+          // Submit to Formspree
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            // Success
+            form.reset();
+            successMsg.style.display = 'block';
+
+            // Scroll to success message
+            successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Redirect after 3 seconds
+            setTimeout(() => {
+              window.location.href = 'index.html';
+            }, 3000);
+          } else {
+            throw new Error('Submission failed');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          errorMsg.style.display = 'block';
+          errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } finally {
+          loading.style.display = 'none';
+          submitBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

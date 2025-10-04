@@ -110,11 +110,30 @@
         font-size: 14px;
         color: #a7acc7;
       }
-      
+
       #headerImg {
         filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
         margin-top: 15px;
         height: 125px;
+      }
+
+      .beta-signup-btn {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 12px 28px;
+        background: var(--brand);
+        color: white;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+      }
+
+      .beta-signup-btn:hover {
+        background: #5b4bd6;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
       }
     </style>
   </head>
@@ -160,6 +179,7 @@
             />
           </div>
           <div class="coming-note">Coming soon</div>
+          <a href="beta-signup.html" class="beta-signup-btn">Sign up for Beta Testing</a>
 
           <div class="screens">
             <img src="assets/screenshot1.png" alt="Gutopia screenshot 1" />
@@ -170,7 +190,8 @@
 
           <div class="links">
             <a href="privacy.html">Privacy Policy</a> ·
-            <a href="terms.html">Terms of Service</a>
+            <a href="terms.html">Terms of Service</a> ·
+            <a href="delete-account.html">Delete Account</a>
           </div>
         </div>
       </section>
