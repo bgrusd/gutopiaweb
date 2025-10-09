@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gutopia — Beta Testing Signup</title>
+    <title>Gutopia — Support</title>
     <meta
       name="description"
-      content="Sign up for early access to test Gutopia, the private AI-powered gut health companion."
+      content="Get help with Gutopia, the private AI-powered gut health companion. Submit support requests and we'll get back to you."
     />
     <link rel="icon" href="assets/app-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -58,7 +58,7 @@
         text-align: center;
       }
       .container {
-        width: min(600px, 92vw);
+        width: min(650px, 92vw);
         margin: 0 auto;
       }
       #headerImg {
@@ -95,7 +95,8 @@
       }
       input[type="text"],
       input[type="email"],
-      select {
+      select,
+      textarea {
         width: 100%;
         padding: 12px 16px;
         background: rgba(255, 255, 255, 0.08);
@@ -108,12 +109,14 @@
       }
       input[type="text"]:focus,
       input[type="email"]:focus,
-      select:focus {
+      select:focus,
+      textarea:focus {
         outline: none;
         border-color: var(--brand);
         background: rgba(255, 255, 255, 0.1);
       }
-      input::placeholder {
+      input::placeholder,
+      textarea::placeholder {
         color: #6a6f8c;
       }
       select {
@@ -122,34 +125,10 @@
       select option {
         background: var(--bg);
       }
-      .checkbox-group {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 24px;
-      }
-      input[type="checkbox"] {
-        margin-top: 4px;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        accent-color: var(--brand);
-      }
-      .checkbox-label {
-        flex: 1;
-        font-size: 14px;
+      textarea {
+        min-height: 150px;
+        resize: vertical;
         line-height: 1.6;
-        color: var(--muted);
-      }
-      .conditions-note {
-        background: rgba(108, 92, 231, 0.1);
-        border: 1px solid rgba(108, 92, 231, 0.2);
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--muted);
       }
       .submit-btn {
         width: 100%;
@@ -220,6 +199,22 @@
         animation: spin 0.8s linear infinite;
         margin-right: 8px;
       }
+      .info-note {
+        background: rgba(108, 92, 231, 0.1);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .char-counter {
+        font-size: 12px;
+        color: #6a6f8c;
+        text-align: right;
+        margin-top: 4px;
+      }
     </style>
   </head>
   <body>
@@ -236,20 +231,20 @@
         <a href="index.html" class="back-link">← Back to home</a>
 
         <div class="form-container">
-          <h1>Beta Testing Signup</h1>
+          <h1>Support</h1>
           <p class="subtitle">
-            Be among the first to try Gutopia and help shape the future of gut health management.
+            Having issues or questions about Gutopia? We're here to help. Fill out the form below and we'll get back to you as soon as possible.
           </p>
 
           <div class="success-message" id="successMessage">
-            Thank you for signing up! We'll contact you when beta testing begins.
+            Thank you for reaching out! We've received your support request and will respond within 24-48 hours.
           </div>
 
           <div class="error-message" id="errorMessage">
-            Something went wrong. Please try again or email us at support@gutopia.app
+            Something went wrong. Please try again or email us directly at support@gutopia.app
           </div>
 
-          <form id="betaSignupForm" action="https://formspree.io/f/xwprbddd" method="POST">
+          <form id="supportForm" action="https://formspree.io/f/xgvnlbzp" method="POST">
             <div class="form-group">
               <label for="name">Full Name *</label>
               <input
@@ -273,44 +268,59 @@
             </div>
 
             <div class="form-group">
-              <label for="platform">Platform *</label>
-              <select id="platform" name="platform" required>
-                <option value="">Select your platform</option>
-                <option value="ios">iOS (iPhone/iPad)</option>
-                <option value="android">Android</option>
-                <option value="both">Both iOS and Android</option>
+              <label for="category">Issue Category *</label>
+              <select id="category" name="category" required>
+                <option value="">Select a category</option>
+                <option value="technical">Technical Issue / Bug Report</option>
+                <option value="account">Account / Login Issues</option>
+                <option value="data">Data Sync / Privacy Question</option>
+                <option value="feature">Feature Request</option>
+                <option value="billing">Billing / Subscription</option>
+                <option value="general">General Question</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="condition">Primary Condition (optional)</label>
-              <select id="condition" name="condition">
-                <option value="">Select a condition</option>
-                <option value="crohns">Crohn's Disease</option>
-                <option value="uc">Ulcerative Colitis</option>
-                <option value="ibs">IBS</option>
-                <option value="other">Other GI Condition</option>
-                <option value="none">No specific condition</option>
-              </select>
+              <label for="subject">Subject *</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                required
+                placeholder="Brief description of your issue"
+                maxlength="100"
+              />
+              <div class="char-counter">
+                <span id="subjectCount">0</span>/100 characters
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea
+                id="message"
+                name="message"
+                required
+                placeholder="Please provide as much detail as possible. For technical issues, include your device type (iOS/Android) and app version if applicable."
+                maxlength="2000"
+              ></textarea>
+              <div class="char-counter">
+                <span id="messageCount">0</span>/2000 characters
+              </div>
             </div>
 
             <!-- Hidden fields for better organization in Formspree -->
-            <input type="hidden" name="_subject" value="New Gutopia Beta Signup!" />
+            <input type="hidden" name="_subject" value="Gutopia Support Request" />
             <input type="hidden" name="_template" value="table" />
+            <input type="hidden" name="_replyto" id="_replyto" />
 
-            <div class="conditions-note">
-              Your information will be used solely for beta testing coordination. We'll send you TestFlight (iOS) or Play Store testing links when available.
-            </div>
-
-            <div class="checkbox-group">
-              <input type="checkbox" id="privacy" name="privacy" required />
-              <label for="privacy" class="checkbox-label">
-                I agree to participate in beta testing and understand this is pre-release software that may contain bugs. I've read the <a href="privacy.html" target="_blank">Privacy Policy</a> and <a href="terms.html" target="_blank">Terms of Service</a>.
-              </label>
+            <div class="info-note">
+              We typically respond within 24-48 hours during business days. For urgent issues, please email us directly at support@gutopia.app
             </div>
 
             <button type="submit" class="submit-btn">
-              Sign Up for Beta
+              Submit Support Request
             </button>
 
             <div class="loading" id="loading">
@@ -325,10 +335,10 @@
     <footer>
       <div class="container">
         <div style="margin-bottom: 12px; font-size: 14px; color: #a7acc7;">
+          <a href="index.html">Back to Home</a> ·
           <a href="privacy.html">Privacy Policy</a> ·
           <a href="terms.html">Terms of Service</a> ·
-          <a href="delete-account.html">Delete Account</a> ·
-          <a href="support.html">Support</a>
+          <a href="delete-account.html">Delete Account</a>
         </div>
         <small>© <span id="year"></span> Gutopia. All rights reserved.</small>
       </div>
@@ -337,7 +347,22 @@
     <script>
       document.getElementById("year").textContent = new Date().getFullYear();
 
-      const form = document.getElementById('betaSignupForm');
+      // Character counters
+      const subjectInput = document.getElementById('subject');
+      const messageInput = document.getElementById('message');
+      const subjectCount = document.getElementById('subjectCount');
+      const messageCount = document.getElementById('messageCount');
+
+      subjectInput.addEventListener('input', () => {
+        subjectCount.textContent = subjectInput.value.length;
+      });
+
+      messageInput.addEventListener('input', () => {
+        messageCount.textContent = messageInput.value.length;
+      });
+
+      // Form submission
+      const form = document.getElementById('supportForm');
       const successMsg = document.getElementById('successMessage');
       const errorMsg = document.getElementById('errorMessage');
       const loading = document.getElementById('loading');
@@ -360,6 +385,10 @@
         // Add timestamp
         formData.append('timestamp', new Date().toISOString());
 
+        // Set reply-to to user's email
+        const emailInput = document.getElementById('email');
+        document.getElementById('_replyto').value = emailInput.value;
+
         try {
           // Submit to Formspree
           const response = await fetch(form.action, {
@@ -373,15 +402,17 @@
           if (response.ok) {
             // Success
             form.reset();
+            subjectCount.textContent = '0';
+            messageCount.textContent = '0';
             successMsg.style.display = 'block';
 
             // Scroll to success message
             successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Redirect after 3 seconds
+            // Redirect after 5 seconds (longer than beta form to give time to read)
             setTimeout(() => {
               window.location.href = 'index.html';
-            }, 3000);
+            }, 5000);
           } else {
             throw new Error('Submission failed');
           }
