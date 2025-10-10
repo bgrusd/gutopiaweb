@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About — Gutopia</title>
+    <meta
+      name="description"
+      content="Learn about Asher, the 17-year-old founder of Gutopia who built the app while living with Crohn's disease."
+    />
+    <link rel="icon" href="assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0c1b;
+        --fg: #cdcdde;
+        --muted: #cdd1ef;
+        --brand: #6c5ce7;
+        --card: rgba(255, 255, 255, 0.05);
+        --stroke: rgba(255, 255, 255, 0.12);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        font-family: Sora, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      a {
+        color: var(--brand);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      header,
+      footer {
+        padding: 20px 14px;
+        text-align: center;
+      }
+      .container {
+        width: min(1100px, 92vw);
+        margin: 0 auto;
+      }
+      .content {
+        max-width: 750px;
+        margin: 40px auto;
+        padding: 0 20px;
+        line-height: 1.8;
+      }
+      .content h1 {
+        font-size: clamp(32px, 6vw, 48px);
+        margin: 0 0 30px;
+        text-align: center;
+      }
+      .content h2 {
+        font-size: clamp(24px, 4vw, 32px);
+        margin: 40px 0 20px;
+        color: var(--brand);
+      }
+      .content p {
+        margin: 20px 0;
+        color: var(--muted);
+        font-size: 17px;
+      }
+      .content strong {
+        color: var(--fg);
+      }
+      .signature {
+        margin-top: 40px;
+        font-style: italic;
+        color: var(--fg);
+      }
+      #headerImg {
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        margin-top: 15px;
+        height: 125px;
+      }
+      .back-home {
+        display: inline-block;
+        margin: 20px 0;
+        padding: 10px 24px;
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      .back-home:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+        text-decoration: none;
+      }
+      .links {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #a7acc7;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="index.html">
+          <img
+            id="headerImg"
+            src="assets/app-icon.png"
+            alt="Gutopia App icon"
+          />
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="content">
+        <a href="index.html" class="back-home">← Back to Home</a>
+
+        <h1>About Gutopia</h1>
+
+        <h2>Why Gutopia Exists</h2>
+
+        <p>I'm Asher, I'm 17, and I have Crohn's disease.</p>
+
+        <p>
+          A few years ago, I started keeping notes on my phone what I ate, how I
+          felt, when my symptoms acted up. It was messy, hard to read, and
+          honestly kind of depressing to scroll through. But it was the only way
+          I could try to figure out what was triggering my flares.
+        </p>
+
+        <p>
+          Every other health app I tried felt like it was made for someone
+          tracking their morning jog or daily protein intake. Nothing felt built
+          for people like us people who need to know if that meal from
+          <strong>four days ago</strong> is why we feel terrible
+          <strong>today</strong>. People who need to track infusions, not just
+          vitamins. People who want privacy because gut health is personal.
+        </p>
+
+        <p>So I decided to build something better.</p>
+
+        <p>
+          Gutopia is what I wish I had from the start: quick logging, real
+          pattern recognition with lag awareness, flare forecasting, and
+          everything running privately on your device. No judgment, no data
+          mining, just insights that actually help.
+        </p>
+
+        <p>
+          I built this for me. But I'm sharing it because I know I'm not the only
+          one who needs it.
+        </p>
+
+        <p class="signature">Asher</p>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="links">
+          <a href="privacy.html">Privacy Policy</a> ·
+          <a href="terms.html">Terms of Service</a> ·
+          <a href="delete-account.html">Delete Account</a> ·
+          <a href="support.html">Support</a> ·
+          <a href="about.html">About</a>
+        </div>
+        <small
+          >© <span id="y"></span> Gutopia. All rights reserved. · Effective &
+          Last Updated: September 21, 2025</small
+        >
+      </div>
+    </footer>
+    <script>
+      document.getElementById("y").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
