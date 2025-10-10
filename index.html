@@ -257,13 +257,15 @@
       const images = carousel.querySelectorAll('img');
 
       function updateActiveImage() {
-        const carouselCenter = carousel.offsetLeft + carousel.offsetWidth / 2;
+        const carouselRect = carousel.getBoundingClientRect();
+        const carouselCenter = carouselRect.left + carouselRect.width / 2;
 
         let closestImage = null;
         let closestDistance = Infinity;
 
         images.forEach(img => {
-          const imgCenter = img.offsetLeft + img.offsetWidth / 2 - carousel.scrollLeft;
+          const imgRect = img.getBoundingClientRect();
+          const imgCenter = imgRect.left + imgRect.width / 2;
           const distance = Math.abs(carouselCenter - imgCenter);
 
           if (distance < closestDistance) {
@@ -278,12 +280,8 @@
         }
       }
 
-      // Update on scroll with debouncing for performance
-      let scrollTimeout;
-      carousel.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(updateActiveImage, 50);
-      });
+      // Update immediately on scroll (no debouncing for smooth real-time updates)
+      carousel.addEventListener('scroll', updateActiveImage, { passive: true });
 
       // Update on resize
       window.addEventListener('resize', updateActiveImage);
