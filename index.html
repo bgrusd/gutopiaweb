@@ -121,12 +121,22 @@
         transform: scale(0.82);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       }
-      .screens img:hover {
+      .screens img:hover,
+      .screens img.active {
         opacity: 1;
         transform: scale(1);
         box-shadow:
           0 15px 40px rgba(0, 0, 0, 0.6),
           0 0 35px rgba(108, 92, 231, 0.25);
+      }
+
+      /* On mobile, disable hover and rely only on active class */
+      @media (hover: none) {
+        .screens img:hover {
+          opacity: 0.4;
+          transform: scale(0.82);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
       }
       @media (max-width: 768px) {
         .screens {
@@ -241,6 +251,45 @@
     </footer>
     <script>
       document.getElementById("y").textContent = new Date().getFullYear();
+
+      // Auto-activate centered image in carousel
+      const carousel = document.querySelector('.screens');
+      const images = carousel.querySelectorAll('img');
+
+      function updateActiveImage() {
+        const carouselCenter = carousel.offsetLeft + carousel.offsetWidth / 2;
+
+        let closestImage = null;
+        let closestDistance = Infinity;
+
+        images.forEach(img => {
+          const imgCenter = img.offsetLeft + img.offsetWidth / 2 - carousel.scrollLeft;
+          const distance = Math.abs(carouselCenter - imgCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestImage = img;
+          }
+        });
+
+        images.forEach(img => img.classList.remove('active'));
+        if (closestImage) {
+          closestImage.classList.add('active');
+        }
+      }
+
+      // Update on scroll with debouncing for performance
+      let scrollTimeout;
+      carousel.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateActiveImage, 50);
+      });
+
+      // Update on resize
+      window.addEventListener('resize', updateActiveImage);
+
+      // Initial update
+      updateActiveImage();
     </script>
   </body>
 </html>
