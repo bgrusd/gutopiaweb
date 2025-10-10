@@ -97,44 +97,40 @@
         text-align: center;
         margin-top: 6px;
       }
-      .carousel-container {
-        margin: 40px auto 10px;
-        overflow: hidden;
-        position: relative;
-      }
       .screens {
         display: flex;
         gap: 20px;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
-        padding: 20px calc(50vw - 180px);
+        padding: 40px calc(50vw - 160px);
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        margin: 40px auto 10px;
       }
       .screens::-webkit-scrollbar {
         display: none;
       }
       .screens img {
         flex-shrink: 0;
-        width: 280px;
+        width: 260px;
         border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
         scroll-snap-align: center;
         transition: all 0.3s ease;
-        opacity: 0.5;
-        transform: scale(0.85);
+        opacity: 0.4;
+        transform: scale(0.82);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       }
-      .screens img.center {
+      .screens img:hover {
         opacity: 1;
         transform: scale(1);
         box-shadow:
           0 15px 40px rgba(0, 0, 0, 0.6),
-          0 0 30px rgba(108, 92, 231, 0.2);
+          0 0 35px rgba(108, 92, 231, 0.25);
       }
       @media (max-width: 768px) {
         .screens {
-          padding: 20px calc(50vw - 140px);
+          padding: 40px calc(50vw - 130px);
         }
         .screens img {
           width: 220px;
@@ -245,29 +241,6 @@
     </footer>
     <script>
       document.getElementById("y").textContent = new Date().getFullYear();
-
-      // Carousel center detection
-      const carousel = document.querySelector('.screens');
-      const images = document.querySelectorAll('.screens img');
-
-      function updateCenterImage() {
-        const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
-
-        images.forEach(img => {
-          const imgCenter = img.offsetLeft + img.offsetWidth / 2;
-          const distance = Math.abs(carouselCenter - imgCenter);
-
-          if (distance < img.offsetWidth / 2) {
-            img.classList.add('center');
-          } else {
-            img.classList.remove('center');
-          }
-        });
-      }
-
-      carousel.addEventListener('scroll', updateCenterImage);
-      window.addEventListener('resize', updateCenterImage);
-      updateCenterImage(); // Initial call
     </script>
   </body>
 </html>
