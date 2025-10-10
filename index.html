@@ -97,17 +97,48 @@
         text-align: center;
         margin-top: 6px;
       }
+      .carousel-container {
+        margin: 40px auto 10px;
+        overflow: hidden;
+        position: relative;
+      }
       .screens {
         display: flex;
-        gap: 18px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin: 24px auto 10px;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        padding: 20px calc(50vw - 180px);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .screens::-webkit-scrollbar {
+        display: none;
       }
       .screens img {
-        width: min(300px, 45vw);
+        flex-shrink: 0;
+        width: 280px;
         border-radius: 18px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        scroll-snap-align: center;
+        transition: all 0.3s ease;
+        opacity: 0.5;
+        transform: scale(0.85);
+      }
+      .screens img.center {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow:
+          0 15px 40px rgba(0, 0, 0, 0.6),
+          0 0 30px rgba(108, 92, 231, 0.2);
+      }
+      @media (max-width: 768px) {
+        .screens {
+          padding: 20px calc(50vw - 140px);
+        }
+        .screens img {
+          width: 220px;
+        }
       }
       .links {
         margin-top: 12px;
@@ -214,6 +245,29 @@
     </footer>
     <script>
       document.getElementById("y").textContent = new Date().getFullYear();
+
+      // Carousel center detection
+      const carousel = document.querySelector('.screens');
+      const images = document.querySelectorAll('.screens img');
+
+      function updateCenterImage() {
+        const carouselCenter = carousel.offsetWidth / 2 + carousel.scrollLeft;
+
+        images.forEach(img => {
+          const imgCenter = img.offsetLeft + img.offsetWidth / 2;
+          const distance = Math.abs(carouselCenter - imgCenter);
+
+          if (distance < img.offsetWidth / 2) {
+            img.classList.add('center');
+          } else {
+            img.classList.remove('center');
+          }
+        });
+      }
+
+      carousel.addEventListener('scroll', updateCenterImage);
+      window.addEventListener('resize', updateCenterImage);
+      updateCenterImage(); // Initial call
     </script>
   </body>
 </html>
