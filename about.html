@@ -76,6 +76,35 @@
       .content strong {
         color: var(--fg);
       }
+      .hero-image {
+        width: 100%;
+        max-width: 650px;
+        height: auto;
+        border-radius: 12px;
+        margin: 30px auto;
+        display: block;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .inline-image {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        border-radius: 12px;
+        margin: 30px auto;
+        display: block;
+        border: 2px solid rgba(108, 92, 231, 0.3);
+        box-shadow:
+          0 8px 24px rgba(0, 0, 0, 0.4),
+          0 0 40px rgba(108, 92, 231, 0.15);
+      }
+      .image-caption {
+        text-align: center;
+        font-size: 14px;
+        color: #8a8fa7;
+        margin-top: -20px;
+        margin-bottom: 30px;
+        font-style: italic;
+      }
       .signature {
         margin-top: 40px;
         font-style: italic;
@@ -127,41 +156,70 @@
 
         <h1>About Gutopia</h1>
 
-        <h2>Why Gutopia Exists</h2>
+        <img src="assets/surf-photo.jpg" alt="Surfing" class="hero-image" />
+
+        <h2>Living with Crohn's</h2>
 
         <p>I'm Asher, I'm 17, and I have Crohn's disease.</p>
 
         <p>
-          A few years ago, I started keeping notes on my phone what I ate, how I
-          felt, when my symptoms acted up. It was messy, hard to read, and
-          honestly kind of depressing to scroll through. But it was the only way
-          I could try to figure out what was triggering my flares.
+          On good days, I'm surfing. On treatment days, I'm sitting in an
+          infusion chair for hours, connected to an IV. And on the days in
+          between, I'm trying to figure out why I feel the way I do.
+        </p>
+
+        <p>
+          A few years ago, I started keeping notes on my phone—what I ate, how I
+          felt, when symptoms flared. It was messy, hard to read, and honestly
+          kind of depressing to scroll through. But it was the only way I could
+          try to connect the dots between what I did days ago and how I felt
+          today.
+        </p>
+
+        <h2>The Moment It Clicked</h2>
+
+        <img src="assets/infusion-photo.jpeg" alt="Building Gutopia during an infusion" class="inline-image" />
+        <p class="image-caption">Building Gutopia during a biologic infusion</p>
+
+        <p>
+          I spend a lot of time in infusion chairs. Hours every few weeks, just
+          sitting there. So one day, I brought my laptop and started building
+          the app I wished existed.
         </p>
 
         <p>
           Every other health app I tried felt like it was made for someone
           tracking their morning jog or daily protein intake. Nothing felt built
-          for people like us people who need to know if that meal from
+          for people like us—people who need to know if that meal from
           <strong>four days ago</strong> is why we feel terrible
           <strong>today</strong>. People who need to track infusions, not just
-          vitamins. People who want privacy because gut health is personal.
+          vitamins. People who want privacy because gut health is deeply
+          personal.
         </p>
 
         <p>So I decided to build something better.</p>
 
+        <h2>What Gutopia Is</h2>
+
         <p>
           Gutopia is what I wish I had from the start: quick logging, real
-          pattern recognition with lag awareness, flare forecasting, and
-          everything running privately on your device. No judgment, no data
-          mining, just insights that actually help.
+          pattern recognition with lag awareness (0–7 days), flare forecasting,
+          infusion cycle tracking, and everything running privately on your
+          device. No judgment, no data mining, just insights that actually help.
         </p>
 
         <p>
-          I built this for me. But I'm sharing it because I know I'm not the only
-          one who needs it.
+          I built this during my treatments because I needed it. But I'm sharing
+          it because I know I'm not the only one who does.
         </p>
 
-        <p class="signature">Asher</p>
+        <p>
+          If you're reading this and you have IBD, I hope Gutopia helps you take
+          back some control. You deserve tools that understand what you're going
+          through.
+        </p>
+
+        <p class="signature">— Asher</p>
       </div>
     </main>
 
