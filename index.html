@@ -211,6 +211,35 @@
         letter-spacing: 0.08em;
         text-shadow: 0 0 20px rgba(108, 92, 231, 0.5);
       }
+
+      .instagram-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 32px;
+        margin-bottom: 20px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        color: var(--fg);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .instagram-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .instagram-link img {
+        height: 24px;
+        width: 24px;
+      }
     </style>
   </head>
   <body>
@@ -287,6 +316,11 @@
             <img src="assets/Simulator Screenshot - iPhone 16 Pro Max - 2025-10-19 at 20.55.43.png" alt="Gutopia screenshot 24" />
             <img src="assets/Simulator Screenshot - iPhone 16 Pro Max - 2025-10-19 at 20.55.49.png" alt="Gutopia screenshot 25" />
           </div>
+
+          <a href="https://www.instagram.com/gutopia.ai/" target="_blank" rel="noopener noreferrer" class="instagram-link">
+            <img src="assets/instagram-logo.svg" alt="Instagram" />
+            <span>Follow us on Instagram</span>
+          </a>
 
           <div class="links">
             <a href="privacy.html">Privacy Policy</a> ·
