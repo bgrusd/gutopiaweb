@@ -57,11 +57,21 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
         );
         return {
           what: row.plainLanguage.what,
-          analogy: row.plainLanguage.analogy,
+          example: row.example,
           uses: row.plainLanguage.uses,
         };
       });
-      assert.equal(await page.locator("#plain-what").innerText(), copy.what);
+      assert.equal(
+        (await page.locator("#plain-what").innerText())
+          .replace(/\s+/g, " ")
+          .trim(),
+        copy.what.replace(/\s+/g, " ").trim(),
+      );
+      assert.equal(
+        await page.locator("#plain-what > p").count(),
+        2,
+        item.id + " overview is not two paragraphs",
+      );
       assert.equal(
         await page.locator("#plain-analogy").count(),
         0,
@@ -69,7 +79,7 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
       );
       assert(
         !(await page.locator(".plain-explainer").innerText()).includes(
-          copy.analogy,
+          "Think of it",
         ),
         item.id + " analogy remains in main overview",
       );
@@ -104,13 +114,18 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
           (await page.locator(`#panel-${tab}`).innerText()).length > 200,
           item.id + " empty explanation",
         );
-        if (tab === "purpose")
+        if (tab === "purpose") {
+          const text = await page.locator("#panel-purpose").innerText();
           assert(
-            (await page.locator("#panel-purpose").innerText()).includes(
-              copy.analogy,
-            ),
-            item.id + " Idea-tab explanation changed",
+            text.includes(copy.example),
+            item.id + " concrete example missing",
           );
+          assert(
+            !text.includes("A way to picture it") &&
+              !text.includes("Think of it"),
+            item.id + " forced analogy remains in Idea",
+          );
+        }
       }
       await page.locator("#tab-demo").click();
     }

@@ -25,9 +25,9 @@ assert.equal(
   23,
 );
 const dtw = catalog.find((x) => x.id === "dtw");
-assert(/seven consecutive days/.test(dtw.plainLanguage.what));
-assert(/three-row steps/.test(dtw.plainLanguage.what));
-assert(/sliding window/.test(dtw.walkthrough));
+assert(/seven consecutive(?: recorded)? days/.test(dtw.plainLanguage.what));
+assert(/three(?:-row| rows)/.test(dtw.plainLanguage.what));
+assert(/sliding window/.test(dtw.plainLanguage.what));
 const meaningfulArray = (result) =>
   Object.values(result).some((value) => Array.isArray(value) && value.length);
 function finiteNumbers(value) {
@@ -51,10 +51,12 @@ for (const seed of [42, 137]) {
     ])
       assert(entry[field]?.length > 20, `${entry.id}: missing ${field}`);
     assert(
-      entry.plainLanguage.what.length > 100 &&
-        entry.plainLanguage.analogy.length > 100 &&
-        entry.plainLanguage.uses.length > 30,
-      `${entry.id}: incomplete everyday explanation`,
+      entry.plainLanguage.what.length > 600 &&
+        entry.plainLanguage.what.split(/\n\s*\n/).length === 2 &&
+        entry.plainLanguage.uses.length > 30 &&
+        !("analogy" in entry.plainLanguage) &&
+        entry.example.length > 150,
+      `${entry.id}: incomplete technical overview or example`,
     );
     assert.equal(entry.methodology.length, 4);
     for (const [title, paragraph] of entry.methodology)

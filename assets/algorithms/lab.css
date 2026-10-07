@@ -1799,3 +1799,7 @@ body {
 .lab-footer {
   flex-wrap: wrap;
 }
+
+.explainer-card p + p {
+  margin-top: 17px;
+}

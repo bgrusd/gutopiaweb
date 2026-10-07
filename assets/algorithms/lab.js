@@ -15,6 +15,15 @@
           "'": "&#39;",
         })[c],
     );
+  const paragraphs = (text, className = "") =>
+    String(text || "")
+      .split(/\n\s*\n/)
+      .filter((part) => part.trim())
+      .map(
+        (part) =>
+          `<p${className ? ` class="${className}"` : ""}>${escape(part)}</p>`,
+      )
+      .join("");
   const colors = [
     "#a292ff",
     "#70e0cb",
@@ -170,45 +179,45 @@
           }))
         : coefficients;
     const max = Math.max(0.001, ...rows.map((row) => Math.abs(row.value)));
-    return `<div class="coefficient-heading"><span>Learned coefficients</span><span>Comparable input scales · mint means a negative weight</span></div><div class="coefficient-grid">${rows.map((row) => `<div class="coefficient-row"><span>${escape(feature(row.feature))}</span><div class="coefficient-track"><div class="coefficient-fill${row.value < 0 ? " negative" : ""}" style="width:${(Math.abs(row.value) / max) * 100}%"></div></div><span>${fmt(row.value)}</span></div>`).join("")}</div>`;
+    return `<div class="coefficient-heading"><span>Fitted coefficients</span><span>Coefficients use standardized inputs · mint means negative</span></div><div class="coefficient-grid">${rows.map((row) => `<div class="coefficient-row"><span>${escape(feature(row.feature))}</span><div class="coefficient-track"><div class="coefficient-fill${row.value < 0 ? " negative" : ""}" style="width:${(Math.abs(row.value) / max) * 100}%"></div></div><span>${fmt(row.value)}</span></div>`).join("")}</div>`;
   }
   function evaluationMetrics(e, classification = false) {
     if (classification)
       metrics([
         [
           percent(e.accuracy),
-          "Saved-day accuracy",
-          "Say yes when probability reaches 0.5",
+          "Held-out accuracy",
+          "Positive prediction at probability ≥ 0.5",
           true,
         ],
         [
           fmt(e.brier, 3),
-          "Saved-day probability error (Brier)",
+          "Held-out Brier score",
           "Lower means fewer probability mistakes",
         ],
         [
           e.heldOutRows,
-          "Saved test examples",
-          `${e.trainingRows} earlier learning examples`,
+          "Held-out test examples",
+          `${e.trainingRows} earlier training examples`,
         ],
         [
           percent(e.recall),
-          "Positives found (recall)",
-          `Correct positive calls (precision): ${percent(e.precision)}`,
+          "Recall: actual positives detected",
+          `Precision: positive predictions correct: ${percent(e.precision)}`,
         ],
       ]);
     else
       metrics([
         [
           fmt(e.rmse, 3),
-          "Saved-day error (RMSE)",
-          "Error in pain-scale points; lower is better",
+          "Held-out RMSE (pain points)",
+          "Root mean squared error; lower is better",
           true,
         ],
         [
           fmt(e.baselineRmse, 3),
-          "Simple average-guess error",
-          "Always guess the earlier period’s mean",
+          "Training-mean baseline RMSE",
+          "Predict the training target mean on every test row",
         ],
         [
           fmt(e.r2, 3),
@@ -217,8 +226,8 @@
         ],
         [
           e.heldOutRows,
-          "Saved test examples",
-          `${e.trainingRows} earlier learning examples`,
+          "Held-out test examples",
+          `${e.trainingRows} earlier training examples`,
         ],
       ]);
   }
@@ -236,29 +245,29 @@
             0.05,
           ),
       xLabels: dates.map((i) => ({ value: i, label: rows[i].date.slice(5) })),
-      xTitle: "Saved test dates",
+      xTitle: "Held-out target dates",
     });
     chartHead(
       binary
-        ? "Estimated chances meet actual yes/no answers"
-        : "Model estimates vs. actual values on saved days",
-      `${result.horizon}-day endpoint · learn on earlier days, check on later ones · ${rows.length} observations`,
+        ? "Predicted probabilities vs. observed binary labels"
+        : "Predicted vs. observed pain on held-out dates",
+      `${result.horizon}-day endpoint · chronological training/test split · ${rows.length} observations`,
       binary
         ? [
             ["Model probability", colors[0]],
-            ["Actual yes/no answer", colors[1]],
+            ["Observed binary label", colors[1]],
           ]
         : [
             ["Model prediction", colors[0]],
             ["Actual simulated pain", colors[1]],
           ],
       binary
-        ? "Actual yes/no answer: simulated pain ≥ 5. Probability is not a clinical risk estimate."
+        ? "Observed binary label: simulated pain ≥ 5. Probability is not a clinical risk estimate."
         : "These pain values are generated. The plotted days were saved for checking, not used to teach the model.",
     );
     let markup = f.markup;
     if (binary) {
-      markup += `<path d="M${f.left} ${f.y(0.5)}H${f.right}" stroke="#eacb8744" stroke-dasharray="5 5"/><text x="${f.right}" y="${f.y(0.5) - 7}" text-anchor="end" class="chart-axis">Say yes above 0.5</text>`;
+      markup += `<path d="M${f.left} ${f.y(0.5)}H${f.right}" stroke="#eacb8744" stroke-dasharray="5 5"/><text x="${f.right}" y="${f.y(0.5) - 7}" text-anchor="end" class="chart-axis">Class threshold: 0.5</text>`;
       markup += polyline(rows, f, "predicted", colors[0]);
       markup += circles(
         rows.map((r, i) => ({
@@ -291,8 +300,8 @@
     $("chart-extra").innerHTML = coefficientBars(result.coefficients);
     evaluationMetrics(result.evaluation, binary);
     $("result-takeaway").textContent = binary
-      ? `The line is the model’s chance of simulated pain reaching five, and mint dots show the actual yes/no answers. For the latest example it gives ${percent(result.prediction)}. The Probability error (Brier) checks probability mistakes on saved days; this threshold is a demo rule, not a medical event definition.`
-      : `On saved days, the model’s error is ${fmt(result.evaluation.rmse, 3)} pain-scale points by RMSE, compared with ${fmt(result.evaluation.baselineRmse, 3)} for always guessing the earlier mean. Its latest-example estimate is ${fmt(result.prediction)}. The weight bars use comparable input scales; they describe this model’s recipe, not the effect of a real intervention.`;
+      ? `The line shows probabilities for the defined binary target and mint dots show actual held-out labels. The current-input probability is ${percent(result.prediction)}. Brier score measures squared probability error on test rows. The pain threshold is an explicit demo target, not a validated medical event.`
+      : `Held-out RMSE is ${fmt(result.evaluation.rmse, 3)} pain-scale points, compared with ${fmt(result.evaluation.baselineRmse, 3)} for the training-mean baseline, which predicts the same average on every test row. The current-input prediction is ${fmt(result.prediction)}. Coefficients refer to standardized features; they describe the fitted model, not causal intervention effects.`;
   }
   function renderScatter() {
     const points = result.points,
@@ -302,7 +311,7 @@
     const f = frame({
       xr,
       yr,
-      xTitle: "PC1: combined input direction",
+      xTitle: "Principal component 1",
       yTitle: "PC2",
     });
     const labels = [...new Set(points.map((p) => p.cluster))].sort(
@@ -325,9 +334,9 @@
       "Standardized inputs → PCA plane · 150 synthetic observations",
       entries,
       selected.id === "dbscan"
-        ? "How far a neighborhood reaches 0.7 · four neighbors for a crowded core · gray points remain outside the groups."
+        ? "ε = 0.7 · minPoints = 4 including the point itself · label −1 denotes noise."
         : selected.id === "kmeans"
-          ? "Three requested groups · repeatable starting centers · colors group nearby points, not health states."
+          ? "K = 3 · seeded initialization · Euclidean clustering in the first two PCA coordinates."
           : "This view uses inputs without learning from pain scores. Retained spread is not forecast accuracy.",
     );
     let markup =
@@ -355,25 +364,25 @@
     );
     if (selected.id === "pca") {
       $("chart-extra").innerHTML =
-        `<div class="coefficient-heading"><span>How much input spread the directions keep</span><span>Three combined directions kept</span></div><div class="coefficient-grid">${result.explainedVariance.map((v, i) => `<div class="coefficient-row"><span>PC${i + 1}</span><div class="coefficient-track"><div class="coefficient-fill" style="width:${v * 100}%"></div></div><span>${(v * 100).toFixed(0)}%</span></div>`).join("")}</div>`;
+        `<div class="coefficient-heading"><span>Explained variance by component</span><span>Three retained principal components</span></div><div class="coefficient-grid">${result.explainedVariance.map((v, i) => `<div class="coefficient-row"><span>PC${i + 1}</span><div class="coefficient-track"><div class="coefficient-fill" style="width:${v * 100}%"></div></div><span>${(v * 100).toFixed(0)}%</span></div>`).join("")}</div>`;
       metrics([
         [
           percent(result.explainedVariance[0]),
-          "Input spread kept by PC1",
-          "The direction with the widest spread",
+          "Variance explained by PC1",
+          "Fraction of standardized input variance",
           true,
         ],
         [
           percent(
             result.explainedVariance.slice(0, 2).reduce((a, b) => a + b, 0),
           ),
-          "Input spread kept in this view",
-          "The first two directions combined",
+          "Variance explained by PC1 + PC2",
+          "Variance retained in the plotted PCA projection",
         ],
         [
           "6 → 3",
-          "Original inputs → combined directions",
-          "Three directions kept; two shown",
+          "Original features → retained components",
+          "Three components retained; first two plotted",
         ],
         [
           points.length,
@@ -382,59 +391,54 @@
         ],
       ]);
       $("result-takeaway").textContent =
-        `This picture keeps ${percent(result.explainedVariance[0] + result.explainedVariance[1])} of the six inputs’ spread after their units are made comparable. PCA did not learn from pain scores. Its directions summarize which inputs vary together; that percentage does not measure forecast accuracy.`;
+        `The first two principal components explain ${percent(result.explainedVariance[0] + result.explainedVariance[1])} of standardized input variance. PCA is fitted to the six input features without pain targets. That percentage measures variance retained in the projection, not predictive accuracy.`;
     } else if (selected.id === "kmeans") {
       metrics([
-        [
-          labels.length,
-          "Groups with members",
-          "We asked for three groups",
-          true,
-        ],
+        [labels.length, "Occupied clusters", "Fixed requested K = 3", true],
         [
           fmt(result.inertia, 1),
-          "Total squared distance to centers",
-          "Measures how tightly points gather",
+          "Within-cluster sum of squared distances",
+          "K-means fitting objective in the PCA plane",
         ],
         [
           points.length,
-          "Days assigned to a group",
-          "Even unusual points receive a group",
+          "Assigned observations",
+          "Every point is assigned to its nearest centroid",
         ],
         [
           "2 PCs",
-          "The view used for grouping",
-          "Straight-line distance in the picture",
+          "Clustering representation",
+          "Euclidean distance in the PCA projection",
         ],
       ]);
       $("result-takeaway").textContent =
-        "Each color shows the group whose center is closest to that point; crosses mark those learned centers. Every day receives a group. Try DBSCAN on this same seed to compare a crowd-based rule that can leave isolated points ungrouped.";
+        "Colors show the nearest-centroid cluster assignments; crosses mark the learned centroids. K-means assigns every point to a cluster in this two-component PCA representation. Compare DBSCAN on the same seed to inspect density-based clusters and explicitly unassigned noise points.";
     } else {
       metrics([
         [
           result.clusters,
-          "Connected dense groups",
-          "Groups grow from crowded neighbors",
+          "Density-connected clusters",
+          "Clusters expand from DBSCAN core points",
           true,
         ],
         [
           result.noise,
-          "Days outside the groups",
-          "Gray means the noise label −1",
+          "Noise observations",
+          "Unassigned points retain label −1",
         ],
         [
           result.epsilon,
-          "How far a neighborhood reaches",
-          "Distance measured in this PCA picture",
+          "Neighborhood radius ε",
+          "Euclidean radius in PCA coordinates",
         ],
         [
           result.minPoints,
-          "Neighbors needed for a crowded core",
+          "Minimum neighborhood count",
           "Includes the point itself",
         ],
       ]);
       $("result-takeaway").textContent =
-        `With this seed and neighborhood size, the code finds ${result.clusters} connected group(s) and leaves ${result.noise} points as noise. One group is a valid answer: nearby crowds can connect into one large crowd under this rule.`;
+        `With ε = ${result.epsilon} and minPoints = ${result.minPoints}, this seed produces ${result.clusters} density-connected cluster(s) and ${result.noise} noise points. Connected core neighborhoods can form one large cluster; a single cluster is a valid result, not a fallback illustration.`;
     }
   }
   function horizontalBars(
@@ -517,18 +521,18 @@
       ],
       [
         result.pairs[0].observations,
-        "Exactly matched next-day pairs",
-        "Today’s clue → tomorrow’s outcome",
+        "Complete one-day calendar pairs",
+        "Current features paired with next-day pain",
       ],
       [
         "−1…+1",
-        "Range of the association measure",
-        "A straight-line association, not a cause",
+        "Pearson correlation range",
+        "Linear association; no causal inference",
       ],
       [6, "Compared inputs", "All comparisons shown"],
     ]);
     $("result-takeaway").textContent =
-      `For this seed, ${feature(top.feature).toLowerCase()} has the strongest next-day association by magnitude (${fmt(top.correlation, 3)}). The generator deliberately plants a one-day relationship. The colored input grid shows which clues also move together, helping explain why model weights can share information.`;
+      `For this seed, ${feature(top.feature).toLowerCase()} has the strongest next-day association by magnitude (${fmt(top.correlation, 3)}). The generator deliberately plants a one-day relationship. The colored input grid shows which features also move together, helping explain why model weights can share information.`;
   }
   function renderDtw() {
     const motif = result.motifs[0],
@@ -588,33 +592,33 @@
     metrics([
       [
         fmt(motif.distance, 3),
-        "Best matching cost (DTW distance)",
-        "Lower means a closer match by this rule",
+        "Best constrained DTW distance",
+        "Square root of accumulated squared alignment cost",
         true,
       ],
       [
         result.comparisons,
-        "Seven-day clip pairs compared",
-        "Separate clips with consecutive dates",
+        "Eligible seven-day window comparisons",
+        "Non-overlapping windows; gaps excluded",
       ],
       [
         rolling ? "O(m)" : "O(n·m)",
-        "Space used for matching costs",
+        "Cost-matrix memory complexity",
         rolling
-          ? "Keeps two rows; gives the distance"
-          : "Keeps the grid and the matching path",
+          ? "Rolling rows; exact distance without a path"
+          : "Full matrix with backtracked alignment path",
       ],
       [
         rolling ? "None" : motif.path.length,
-        "Matching links retained",
+        "Alignment path positions",
         rolling
-          ? "Not saved by this memory-saving version"
+          ? "Not retained by the rolling-memory variant"
           : "Links come from the cheapest path",
       ],
     ]);
     $("result-takeaway").textContent = rolling
       ? "These are the closest seven-day clips found by the search. This memory-saving version gives the same distance as full DTW, but does not keep the grid needed to draw the matching path. Open full DTW on this seed to see the links between positions."
-      : "The faint links are the matching path calculated by the code. One point can match several neighboring positions, stretching or compressing local timing while keeping the order. We find these clips by moving a seven-day window through history in three-row steps. A close past match is not a prediction that it will repeat.";
+      : "Links show the returned minimum-cost ordered alignment. A position can correspond to multiple positions in the other sequence, with their indices at most two apart. The sliding-window search uses seven consecutive days, three-row candidate steps and non-overlapping pairs, then ranks the five nearest distances. Similarity under this rule is not recurrence prediction.";
   }
   function renderHorizons() {
     const binary = selected.type === "event-horizon",
@@ -637,10 +641,10 @@
     chartHead(
       binary
         ? "One demo event, three separate endpoints."
-        : "Three future dates. Three separate models.",
+        : "Independent direct-horizon regression models",
       binary
         ? "Probability of synthetic pain ≥ 5 at the endpoint"
-        : "Latest-example estimates from separately learned models",
+        : "Current-input predictions from separately fitted horizon models",
       [
         [
           binary
@@ -649,7 +653,7 @@
           colors[0],
         ],
       ],
-      "These are estimates for separate dates, not a calculated daily path or a confidence range.",
+      "Each value is a separate endpoint prediction. No daily interpolation or calibrated prediction interval is computed.",
     );
     let markup = f.markup;
     if (binary)
@@ -664,37 +668,37 @@
         : "Computed current-input pain estimates at 1, 7 and 14-day endpoints",
     );
     $("chart-extra").innerHTML =
-      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">Scores on saved examples for each future-date model</caption><thead><tr><th>Horizon</th><th>${binary ? "Probability error (Brier)" : "RMSE"}</th><th>${binary ? "Accuracy" : "Simple average-guess error"}</th><th>Learning / saved examples</th></tr></thead><tbody>${models.map((m) => `<tr><td>+${m.horizon} days</td><td>${fmt(binary ? m.evaluation.brier : m.evaluation.rmse, 3)}</td><td>${binary ? percent(m.evaluation.accuracy) : fmt(m.evaluation.baselineRmse, 3)}</td><td>${m.evaluation.trainingRows} / ${m.evaluation.heldOutRows}</td></tr>`).join("")}</tbody></table></div>`;
+      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">Scores on saved examples for each future-date model</caption><thead><tr><th>Horizon</th><th>${binary ? "Probability error (Brier)" : "RMSE"}</th><th>${binary ? "Accuracy" : "Training-mean baseline RMSE"}</th><th>Training / held-out test examples</th></tr></thead><tbody>${models.map((m) => `<tr><td>+${m.horizon} days</td><td>${fmt(binary ? m.evaluation.brier : m.evaluation.rmse, 3)}</td><td>${binary ? percent(m.evaluation.accuracy) : fmt(m.evaluation.baselineRmse, 3)}</td><td>${m.evaluation.trainingRows} / ${m.evaluation.heldOutRows}</td></tr>`).join("")}</tbody></table></div>`;
     metrics([
       [
         3,
-        "Separate models for future dates",
-        "Each question gets its own learning fit",
+        "Independent horizon models",
+        "Separate target pairing and regression/classification fit",
         true,
       ],
       [
         binary ? "3 / 7 / 14" : "1 / 7 / 14",
         "Days ahead",
-        "Exact dates, not an event anytime before",
+        "Exact calendar endpoints, not interval labels",
       ],
       [
         selected.id === "elastic-horizons" ? "6 inputs" : "4 PCs",
-        "Clues seen by the model",
-        "Input transformations learned earlier only",
+        "Predictor representation",
+        "Training-fitted standardization and any PCA",
       ],
       [
         binary ? "0.5" : "RMSE",
         binary
-          ? "Cutoff for saying yes"
+          ? "Classification decision threshold"
           : "Error checked separately at each date",
         binary
           ? "Not a clinical event definition"
-          : "See the saved-day scores in the table",
+          : "See the held-out evaluation table",
       ],
     ]);
     $("result-takeaway").textContent = binary
-      ? "Each bar is the latest example’s probability of simulated pain reaching five at that exact future date. The table checks each question against its own saved later examples. This is not the chance of any event during the intervening days, or a Crohn’s flare-risk estimate."
-      : "Each bar answers a separate future-date question with a separately learned model. The table shows how each did on saved later days. Today’s clues can work well for tomorrow but offer little help a week later; the generator does not guarantee longer-term signal.";
+      ? "Each bar is the latest example’s probability of simulated pain reaching five at that exact future date. The table checks each question against its own held-out later examples. This is not the chance of any event during the intervening days, or a Crohn’s flare-risk estimate."
+      : "Each bar answers a separate future-date question with a separately learned model. The table shows how each did on saved later days. Today’s features can work well for tomorrow but offer little help a week later; the generator does not guarantee longer-term signal.";
   }
   function renderRecursive() {
     const history = snapshot.rows.slice(-28),
@@ -711,16 +715,16 @@
         { value: boundary, label: "Last observed" },
         { value: rows.length - 1, label: "+14 days" },
       ],
-      xTitle: "Observed → guessed future",
+      xTitle: "Observed history → recursive forecast",
     });
     chartHead(
       "Yesterday becomes a feature. Then predictions do.",
-      "Generated history, then 14 steps that use earlier guesses",
+      "Observed synthetic history and a 14-step recursive forecast",
       [
         ["Actual simulated pain", colors[1]],
-        ["Future passed forward from guesses", colors[0]],
+        ["Recursive future prediction", colors[0]],
       ],
-      "Future guesses stay between 0 and 10. Saved one-step checks do not measure this whole guessed path.",
+      "Recursive predictions are bounded to 0–10. One-step holdout metrics do not evaluate the complete 14-step trajectory.",
     );
     let markup =
       f.markup +
@@ -742,7 +746,7 @@
     $("chart-extra").innerHTML = coefficientBars(result.coefficients);
     evaluationMetrics(result.evaluation);
     $("result-takeaway").textContent =
-      `Mint shows the actual generated history. Violet is a guessed future from a model refitted after its test scores were recorded. Later guesses can become inputs for later steps. The saved-day RMSE of ${fmt(result.evaluation.rmse, 3)} checks only one-step answers with observed previous values; it does not measure this whole 14-step future.`;
+      `Mint is observed synthetic pain; violet is the recursive forecast from a final model refitted after recording the holdout evaluation. Later inputs include preceding predictions. The one-step holdout RMSE of ${fmt(result.evaluation.rmse, 3)} uses observed lag values and does not measure this entire multi-step forecast.`;
   }
   function renderCascade() {
     const f = frame({
@@ -765,15 +769,15 @@
     chartHead(
       "Predict the state. Feed it back. Repeat.",
       hasFeatures
-        ? "Pain plus six inputs passed forward from guessed states"
+        ? "Pain and six features from recursively predicted states"
         : "Same seven-quantity model, showing only pain",
       [
         ["Demo pain", colors[0]],
         ...(hasFeatures
-          ? [["Input lines (rescaled for the picture)", colors[1]]]
+          ? [["Feature trajectories (range-normalized for display)", colors[1]]]
           : []),
       ],
-      "Each saved-day test starts from an observed state. That does not measure the entire seven-step guessed future; each field stays within its observed range.",
+      "One-step holdout inputs are observed predecessor states. The seven-step future instead reuses predicted states, bounded to observed field ranges.",
     );
     let markup =
       f.markup +
@@ -813,23 +817,23 @@
       "Actual recursively computed seven-step state cascade, with pain and optional range-normalized feature trajectories",
     );
     $("chart-extra").innerHTML =
-      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">One-step errors on saved examples for each state quantity</caption><thead><tr><th>State field</th><th>One-step RMSE</th><th>Earlier-average guess error</th><th>R²</th></tr></thead><tbody>${result.evaluation.map((e) => `<tr><td>${escape(feature(e.field))}</td><td>${fmt(e.rmse, 3)}</td><td>${fmt(e.baselineRmse, 3)}</td><td>${fmt(e.r2, 3)}</td></tr>`).join("")}</tbody></table></div>`;
+      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">One-step holdout errors for each modeled state variable</caption><thead><tr><th>State field</th><th>One-step RMSE</th><th>Training-mean baseline RMSE</th><th>R²</th></tr></thead><tbody>${result.evaluation.map((e) => `<tr><td>${escape(feature(e.field))}</td><td>${fmt(e.rmse, 3)}</td><td>${fmt(e.baselineRmse, 3)}</td><td>${fmt(e.r2, 3)}</td></tr>`).join("")}</tbody></table></div>`;
     metrics([
       [
         7,
-        "Future steps passed forward",
-        "One guessed state guides the next",
+        "Recursive forecast horizons",
+        "Predicted states become later model inputs",
         true,
       ],
       [
         7,
-        "Quantities predicted inside the model",
+        "Internally modeled state variables",
         "Pain plus six generated input fields",
       ],
       [
         fmt(result.evaluation[0].rmse, 3),
-        "Pain error on saved one-step examples",
-        "Test steps start from actual earlier states",
+        "Pain one-step holdout RMSE",
+        "Evaluation uses observed predecessor states",
       ],
       [
         selected.id === "pca-cascade" ? "4 PCs" : "7 fields",
@@ -838,8 +842,8 @@
       ],
     ]);
     $("result-takeaway").textContent = hasFeatures
-      ? "Violet is simulated pain. Other input lines are rescaled to 0–10 only for the picture, so their shapes can be compared; the download keeps raw values. Each predicted state guides the next, so mistakes can spread. A smooth-looking path shows the model’s behavior, not known future food or medication choices."
-      : "This view shows only the simulated pain line, but the model still guesses all seven state fields behind it. Those hidden guesses affect later steps. Open symptom cascade on the same seed to inspect the extra traces; this is a simpler display, not a separate clinical scoring formula.";
+      ? "Violet is predicted simulated pain. Feature trajectories are range-normalized to 0–10 only for display; downloads retain raw values. Each full predicted state becomes the next input, allowing errors to propagate across fields. Smooth trajectories do not establish accurate future exposures or outcomes."
+      : "This output view returns the pain trajectory while still modeling all seven state fields internally. Predicted feature fields affect later recursive inputs. The symptom cascade exposes those additional trajectories; the scalar display is not a separate clinical score model.";
   }
   function renderComparisons() {
     const rows = result.comparisons.map((r) => ({
@@ -850,19 +854,19 @@
     const max = Math.max(0.5, ...rows.map((r) => Math.abs(r.value ?? 0))) * 1.3;
     chartHead(
       "A mean difference, with its denominators.",
-      "Tomorrow’s average after days with and without the generated clue",
+      "Mean next-day pain after exposed and comparison days",
       [
         ["Higher exposed mean", colors[0]],
         ["Lower exposed mean", colors[1]],
       ],
-      "Average after days with the clue, minus average after days without it · one-day delay · a recorded difference, not a proven effect.",
+      "Average after days with the feature, minus average after days without it · one-day delay · a recorded difference, not a proven effect.",
     );
     $("chart").innerHTML = horizontalBars(rows, {
       xr: [-max, max],
       subtitleKey: "detail",
     });
     $("chart-extra").innerHTML =
-      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">Sizes of the groups being compared</caption><thead><tr><th>Input clue</th><th>Days with it</th><th>Days without it</th><th>Mean difference</th></tr></thead><tbody>${result.comparisons.map((row) => `<tr><td>${escape(feature(row.feature))}</td><td>${row.exposedDays}</td><td>${row.comparisonDays}</td><td>${fmt(row.difference, 3)}</td></tr>`).join("")}</tbody></table></div>`;
+      `<div class="data-table-wrap"><table class="data-table"><caption class="sr-only">Sizes of the groups being compared</caption><thead><tr><th>Input feature</th><th>Days with it</th><th>Days without it</th><th>Mean difference</th></tr></thead><tbody>${result.comparisons.map((row) => `<tr><td>${escape(feature(row.feature))}</td><td>${row.exposedDays}</td><td>${row.comparisonDays}</td><td>${fmt(row.difference, 3)}</td></tr>`).join("")}</tbody></table></div>`;
     const biggest = rows
       .slice()
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))[0];
@@ -873,30 +877,34 @@
         biggest.label,
         true,
       ],
-      [3, "Inputs compared as present or absent", "Dairy, spicy and caffeine"],
-      [1, "Days between clue and outcome", "Matched to the next calendar day"],
+      [3, "Binary exposure indicators compared", "Dairy, spicy and caffeine"],
+      [
+        1,
+        "Days between feature and outcome",
+        "Matched to the next calendar day",
+      ],
       [
         "Both",
         "Sizes of both comparison groups",
-        "Days with the clue, and days without it",
+        "Days with the feature, and days without it",
       ],
     ]);
     $("result-takeaway").textContent =
-      "Each bar compares tomorrow’s average pain after generated days with the clue against days without it. Read both group sizes in the table. The simulator deliberately includes some input relationships; these recorded differences do not prove what changing a real food would do.";
+      "Each bar compares tomorrow’s average pain after generated days with the feature against days without it. Read both group sizes in the table. The simulator deliberately includes some input relationships; these recorded differences do not prove what changing a real food would do.";
   }
   function renderScenarios() {
     const execution = selected.type === "scenario-execution";
     chartHead(
       execution
-        ? "Change one clue. Compare the model’s answers."
+        ? "Evaluate low/high values of one feature at a time"
         : "Which inputs should the what-if model inspect?",
       execution
-        ? "One control changed; all other input values stay the same"
+        ? "One feature changed; all other coordinates held fixed"
         : "Three strongest next-day linear associations, positive or negative",
       execution
         ? [
-            ["Estimate with the low setting", colors[1]],
-            ["Estimate with the high setting", colors[0]],
+            ["Low-setting prediction", colors[1]],
+            ["High-setting prediction", colors[0]],
           ]
         : [
             ["Positive association", colors[0]],
@@ -904,7 +912,7 @@
           ],
       execution
         ? "The model learns from all complete date pairs. These what-if answers are not separately tested intervention outcomes."
-        : "The recorded associations choose three controls; their low/high settings are stated example values.",
+        : "The recorded associations choose three features; their low/high settings are stated example values.",
     );
     if (!execution) {
       $("chart").innerHTML = horizontalBars(
@@ -938,7 +946,7 @@
           value: i,
           label: feature(s.feature),
         })),
-        xTitle: "One input changed at a time",
+        xTitle: "One feature varied at a time",
       });
       let markup = f.markup;
       result.scenarios.forEach((s, i) => {
@@ -949,7 +957,7 @@
       });
       $("chart").innerHTML = svg(
         markup,
-        "Model answers for the low and high setting of each chosen clue",
+        "Model answers for the low and high setting of each chosen feature",
       );
     }
     $("chart-extra").innerHTML =
@@ -965,9 +973,7 @@
       ],
       [
         execution ? "ElasticNet" : "Pearson r (linear association)",
-        execution
-          ? "Model used to calculate the answer"
-          : "How the controls were chosen",
+        execution ? "Fitted prediction model" : "Scenario-selection rule",
         execution
           ? "Uses all complete generated date pairs"
           : "Exactly matched next-day examples",
@@ -979,14 +985,14 @@
       ],
     ]);
     $("result-takeaway").textContent = execution
-      ? "The paired bars come from two copies of the same latest input row. One selected clue is set low or high while all other values stay fixed. This shows how the fitted model responds to that control; it does not show outcomes actually observed after a real intervention."
-      : "This step chooses three controls and two settings for each. The bars show the recorded associations used to choose them; no scenario outcome is predicted yet. Open “Execute scenarios” on the same seed to apply these explicit cases to a fitted model.";
+      ? "The paired bars come from two copies of the same latest input row. One selected feature is set low or high while all other values stay fixed. This shows how the fitted model responds to that feature; it does not show outcomes actually observed after a real intervention."
+      : "This step chooses three features and two settings for each. The bars show the recorded associations used to choose them; no scenario outcome is predicted yet. Open “Execute scenarios” on the same seed to apply these explicit cases to a fitted model.";
   }
   function renderReadings() {
     $("panel-purpose").innerHTML =
-      `<p class="eyebrow">START WITH THE INTUITION</p><h3>${escape(selected.title)}, in everyday language</h3><p class="lead">${escape(selected.plainLanguage.what)}</p><h4>A way to picture it</h4><p>${escape(selected.plainLanguage.analogy)}</p><p class="inline-note">${escape(selected.plainLanguage.uses)}</p>${selected.walkthrough ? `<h4>A small example, step by step</h4><p>${escape(selected.walkthrough)}</p>` : ""}<h4>How to follow this demo</h4><ol class="idea-steps">${selected.steps.map(([title, description]) => `<li><strong>${escape(title)}.</strong> ${escape(description)}</li>`).join("")}</ol><div class="reading-cards"><div class="reading-card"><h4>Why try this approach?</h4><p>${escape(selected.why)}</p></div><div class="reading-card"><h4>What it can leave unanswered</h4><p>${escape(selected.limitations)}</p></div></div>`;
+      `<p class="eyebrow">DEFINITION, MECHANISM AND EXAMPLE</p><h3>Understanding ${escape(selected.title)}</h3>${paragraphs(selected.plainLanguage.what, "lead")}<p class="inline-note">${escape(selected.plainLanguage.uses)}</p><h4>A concrete example</h4>${paragraphs(selected.example)}<h4>The calculation in this demo</h4><ol class="idea-steps">${selected.steps.map(([title, description]) => `<li><strong>${escape(title)}.</strong> ${escape(description)}</li>`).join("")}</ol><div class="reading-cards"><div class="reading-card"><h4>Why use this approach?</h4>${paragraphs(selected.why)}</div><div class="reading-card"><h4>Limits of the result</h4>${paragraphs(selected.limitations)}</div></div>`;
     $("panel-implementation").innerHTML =
-      `<p class="eyebrow">THE EQUATION, THEN THE IMPLEMENTATION</p><h3>The mathematics and the code</h3><div class="formula-card">${escape(selected.math)}</div><p>${escape(selected.mathNote)}</p><h4>How the code performs the calculation</h4><span class="code-name">${escape(selected.handler)}(demoSnapshot)</span><p>${escape(selected.how)}</p><h4>What changed from the coursework version</h4><p>${escape(selected.archive)}</p><div class="reading-card"><h4>A simple path from generated inputs to a picture</h4><p>A fixed copy of the generated days goes into the selected function. Shared JavaScript routines do the mathematics and return the numbers you see. The picture is drawn from those actual results. The calculation stays in this browser and does not read your app’s health logs or call a prediction service.</p></div><div class="source-links"><a href="assets/algorithms/models/workflows.js" target="_blank" rel="noopener noreferrer">Read workflow source ↗</a><a href="assets/algorithms/models/math.js" target="_blank" rel="noopener noreferrer">Read numerical kernels ↗</a><a href="${escape(selected.source[1])}" target="_blank" rel="noopener noreferrer">${escape(selected.source[0])} ↗</a></div>`;
+      `<p class="eyebrow">THE EQUATION, THEN THE IMPLEMENTATION</p><h3>The mathematics and the code</h3><div class="formula-card">${escape(selected.math)}</div>${paragraphs(selected.mathNote)}<h4>How the code performs the calculation</h4><span class="code-name">${escape(selected.handler)}(demoSnapshot)</span>${paragraphs(selected.how)}<h4>What changed from the coursework version</h4>${paragraphs(selected.archive)}<div class="reading-card"><h4>From the input snapshot to calculated results</h4><p>A fixed copy of the generated days goes into the selected function. Shared JavaScript routines do the mathematics and return the numbers you see. The charts are drawn from those actual results. The calculation stays in this browser and does not read your app’s health logs or call a prediction service.</p></div><div class="source-links"><a href="assets/algorithms/models/workflows.js" target="_blank" rel="noopener noreferrer">Read workflow source ↗</a><a href="assets/algorithms/models/math.js" target="_blank" rel="noopener noreferrer">Read numerical kernels ↗</a><a href="${escape(selected.source[1])}" target="_blank" rel="noopener noreferrer">${escape(selected.source[0])} ↗</a></div>`;
     $("panel-methodology").innerHTML =
       `<p class="eyebrow">FROM THE QUESTION TO A FAIR CHECK</p><h3>How we use and check this algorithm</h3>${selected.methodology.map(([title, text]) => `<h4>${escape(title)}</h4><p>${escape(text)}</p>`).join("")}<h4>What the animation means</h4><p>The chart reveals the result already calculated by the code. It does not replay recorded learning iterations or show a live stream of health data. Pause and replay change the presentation. Changing the seed really creates new input data and recalculates the selected model.</p><div class="source-links"><a href="assets/algorithms/ML_ALGORITHMS_AND_METHODOLOGY.md" download>Read the complete implementation guide ↓</a><a href="https://scikit-learn.org/stable/common_pitfalls.html" target="_blank" rel="noopener noreferrer">Why the test data stays separate ↗</a></div>`;
     const rows = snapshot.rows.slice(-12);
@@ -1109,7 +1115,7 @@
       (selected.variant ? " · EARLIER VARIANT" : "");
     $("algorithm-title").textContent = selected.title;
     $("algorithm-description").textContent = selected.description;
-    $("plain-what").textContent = selected.plainLanguage.what;
+    $("plain-what").innerHTML = paragraphs(selected.plainLanguage.what);
     $("plain-uses").textContent = selected.plainLanguage.uses;
     $("algorithm-number").textContent =
       `${String(selected.number).padStart(2, "0")} / 23`;
