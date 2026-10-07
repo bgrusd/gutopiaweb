@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Algorithm Lab — Gutopia</title>
+    <meta
+      name="description"
+      content="Explore 23 working machine-learning demonstrations from Gutopia: interactive visualizations, seeded data, and the mathematics behind every model."
+    />
+    <meta name="theme-color" content="#0a0c1b" />
+    <link rel="icon" href="assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/algorithms/lab.css" />
+    <script defer src="assets/algorithms/kernels.js"></script>
+    <script defer src="assets/algorithms/catalog.js"></script>
+    <script defer src="assets/algorithms/lab.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to algorithm</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header class="site-nav">
+      <a class="wordmark" href="/" aria-label="Gutopia home"
+        ><img
+          src="assets/app-icon-transparent.png"
+          alt=""
+          width="36"
+          height="36"
+        />gutopia<span class="wordmark-dot">.</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="about.html">The story</a
+        ><a href="algorithms.html" aria-current="page"
+          >Algorithm Lab <span class="nav-badge">23</span></a
+        ><a
+          class="nav-download"
+          href="https://apps.apple.com/us/app/gutopia/id6749170728"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Get the app <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main class="page">
+      <section class="lab-intro" aria-labelledby="lab-title">
+        <div class="intro-copy">
+          <p class="eyebrow">
+            <span class="status-dot" aria-hidden="true"></span> FROM COURSEWORK
+            TO CURIOSITY
+          </p>
+          <h1 id="lab-title">
+            A little data.<br />A lot to <span>discover.</span>
+          </h1>
+          <p class="intro-description">
+            Go inside the algorithms behind Gutopia’s ML demo. See the patterns,
+            follow the math, and find out what each model can actually tell us.
+          </p>
+          <div class="intro-meta">
+            <span><strong>23</strong> working demos</span
+            ><span><strong>150</strong> synthetic days</span
+            ><span><strong>100%</strong> in your browser</span>
+          </div>
+        </div>
+        <div class="intro-art" aria-hidden="true">
+          <svg viewBox="0 0 440 190">
+
+            <path
+              class="hero-grid"
+              d="M0 50H440M0 95H440M0 140H440M70 0V190M145 0V190M220 0V190M295 0V190M370 0V190"
+            />
+            <path
+              class="hero-ghost"
+              d="M0 135L25 127L50 151L75 105L100 128L125 73L150 90L175 41L200 70L225 56L250 104L275 74L300 122L325 79L350 55L375 67L400 29L440 43"
+            />
+            <path
+              class="hero-line"
+              stroke="#a292ff"
+              d="M0 130C25 120 36 140 60 130S88 93 110 103S143 65 165 62S188 63 210 64S245 94 265 92S300 110 320 91S359 58 380 56S411 36 440 41"
+            />
+            <circle cx="165" cy="62" r="5" />
+            <circle cx="265" cy="92" r="5" />
+            <circle cx="380" cy="56" r="5" />
+          </svg>
+          <div class="art-caption">
+            <span class="art-icon">∑</span>
+            <div>
+              Different methods.<br /><strong
+                >One transparent playground.</strong
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="demo-note">
+        <span class="note-icon" aria-hidden="true">◎</span>
+        <p>
+          <strong>Made to explore, not diagnose.</strong> Every chart uses
+          simulated data, never your personal health logs. These models
+          demonstrate code and mathematics; they are not validated Crohn’s
+          predictions.
+        </p>
+        <a href="assets/algorithms/ML_ALGORITHMS_AND_METHODOLOGY.md" download
+          >Full technical guide <span aria-hidden="true">↓</span></a
+        >
+      </div>
+      <section class="lab-shell" aria-label="Interactive algorithm explorer">
+        <aside class="algorithm-sidebar" aria-label="Choose an algorithm">
+          <div class="sidebar-heading">
+            <span>THE COLLECTION</span><span id="algorithm-count">23</span>
+          </div>
+          <label class="search-box"
+            ><span aria-hidden="true">⌕</span
+            ><span class="sr-only">Search algorithms</span
+            ><input
+              id="algorithm-search"
+              type="search"
+              placeholder="Find an algorithm…"
+              autocomplete="off"
+          /></label>
+          <div id="algorithm-list" class="algorithm-list"></div>
+          <p class="sidebar-foot">
+            18 main workflows + 5 variants.<br />Shared kernels. Different
+            questions.
+          </p>
+        </aside>
+        <div class="workspace" id="workspace" tabindex="-1">
+          <div class="algorithm-heading">
+            <div>
+              <p id="algorithm-family" class="eyebrow"></p>
+              <h2 id="algorithm-title"></h2>
+              <p id="algorithm-description"></p>
+            </div>
+            <span
+              class="algorithm-number"
+              id="algorithm-number"
+              aria-hidden="true"
+            ></span>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Algorithm details">
+            <button
+              id="tab-demo"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-demo"
+              tabindex="0"
+              data-tab="demo"
+            >
+              Interactive demo</button
+            ><button
+              id="tab-purpose"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-purpose"
+              tabindex="-1"
+              data-tab="purpose"
+            >
+              The idea</button
+            ><button
+              id="tab-implementation"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-implementation"
+              tabindex="-1"
+              data-tab="implementation"
+            >
+              Under the hood</button
+            ><button
+              id="tab-methodology"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-methodology"
+              tabindex="-1"
+              data-tab="methodology"
+            >
+              Methodology</button
+            ><button
+              id="tab-data"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-data"
+              tabindex="-1"
+              data-tab="data"
+            >
+              The data
+            </button>
+          </div>
+          <section
+            id="panel-demo"
+            role="tabpanel"
+            aria-labelledby="tab-demo"
+            class="tab-panel"
+          >
+            <div class="demo-toolbar">
+              <div class="live-indicator">
+                <span class="status-dot" aria-hidden="true"></span> Computed
+                locally <span id="computation-time"></span>
+              </div>
+              <div class="demo-controls">
+                <label
+                  >Seed
+                  <input
+                    type="number"
+                    id="seed-input"
+                    value="42"
+                    min="1"
+                    max="999999"
+                    aria-label="Synthetic data seed" /></label
+                ><button
+                  id="new-seed"
+                  class="icon-button"
+                  title="Generate a different dataset"
+                  aria-label="Generate a different dataset"
+                >
+                  ↻</button
+                ><span class="control-divider"></span
+                ><button
+                  id="play-toggle"
+                  class="small-button"
+                  aria-pressed="true"
+                >
+                  Pause</button
+                ><button id="replay" class="small-button">Replay</button>
+              </div>
+            </div>
+            <div id="result-error" class="error-card" role="alert" hidden></div>
+            <div id="chart-card" class="chart-card">
+              <div class="chart-heading">
+                <div>
+                  <h3 id="chart-title"></h3>
+                  <p id="chart-subtitle"></p>
+                </div>
+                <div id="chart-legend" class="chart-legend"></div>
+              </div>
+              <div id="chart" class="chart-container"></div>
+              <div id="chart-extra" class="chart-extra"></div>
+              <div class="chart-bottom">
+                <span id="chart-footnote"></span
+                ><span class="animation-note"
+                  >Animation reveals results, not solver iterations.</span
+                >
+              </div>
+            </div>
+            <div
+              id="metrics"
+              class="metrics-grid"
+              aria-label="Calculated summary"
+            ></div>
+            <div class="pipeline-heading">
+              <h3>Follow the pipeline</h3>
+              <span>A small model, step by step</span>
+            </div>
+            <div id="pipeline" class="pipeline"></div>
+            <div class="takeaway">
+              <span aria-hidden="true">↳</span>
+              <div>
+                <strong>What you’re seeing</strong>
+                <p id="result-takeaway"></p>
+              </div>
+            </div>
+            <div class="result-actions">
+              <button id="download-result" class="text-button">
+                Download calculated result
+                <span aria-hidden="true">↓</span></button
+              ><span id="run-status" role="status" aria-live="polite"></span>
+            </div>
+          </section>
+          <section
+            id="panel-purpose"
+            role="tabpanel"
+            aria-labelledby="tab-purpose"
+            class="tab-panel reading-panel"
+            hidden
+          ></section>
+          <section
+            id="panel-implementation"
+            role="tabpanel"
+            aria-labelledby="tab-implementation"
+            class="tab-panel reading-panel"
+            hidden
+          ></section>
+          <section
+            id="panel-methodology"
+            role="tabpanel"
+            aria-labelledby="tab-methodology"
+            class="tab-panel reading-panel"
+            hidden
+          ></section>
+          <section
+            id="panel-data"
+            role="tabpanel"
+            aria-labelledby="tab-data"
+            class="tab-panel reading-panel"
+            hidden
+          ></section>
+        </div>
+      </section>
+      <div class="lab-footer">
+        <p>
+          Built from Gutopia’s demo algorithm source.<br /><span
+            >Handwritten JavaScript kernels. No black-box prediction
+            service.</span
+          >
+        </p>
+        <a href="assets/algorithms/ML_ALGORITHMS_AND_METHODOLOGY.md" download
+          >Read the implementation guide ↗</a
+        >
+      </div>
+    </main>
+    <footer class="site-footer">
+      <a href="/">← Back to Gutopia</a
+      ><span>© <span id="year"></span> Gutopia</span>
+      <div>
+        <a href="privacy.html">Privacy</a><a href="support.html">Support</a>
+      </div>
+    </footer>
+    <noscript
+      ><p class="noscript-message">
+        Enable JavaScript to run the interactive models. You can still
+        <a href="assets/algorithms/ML_ALGORITHMS_AND_METHODOLOGY.md"
+          >read the complete algorithm guide</a
+        >.
+      </p></noscript
+    >
+  </body>
+</html>

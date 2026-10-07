@@ -6,7 +6,7 @@
     <title>Gutopia — Your Private Gut Health Companion</title>
     <meta
       name="description"
-      content="Gutopia is a private, AI‑powered gut health companion that helps you log meals, medications, and symptoms to discover patterns and anticipate flares — all on your device."
+      content="Gutopia helps you track meals, medications and symptoms, inspect recorded patterns, and explore machine-learning demonstrations on synthetic data."
     />
     <link rel="icon" href="assets/app-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -200,6 +200,9 @@
         box-shadow: 0 8px 28px rgba(108, 92, 231, 0.35);
       }
 
+      .algorithm-lab-link { margin-left: 12px; background: rgba(108, 92, 231, 0.2); }
+      .hero .algorithm-lab-description { font-size: 13px; color: #a7acc7; margin: -17px auto 30px; }
+      @media (max-width: 600px) { .algorithm-lab-link { margin: 0 0 25px; font-size: 15px; padding: 14px 24px; } }
       .now-available {
         display: block;
         margin-top: 8px;
@@ -261,18 +264,19 @@
           <p>
             Built by someone who lives with <strong>Crohn’s disease</strong>.
             Gutopia is designed specifically with <strong>IBD</strong> (Crohn’s
-            & ulcerative colitis) in mind. It’s your private, AI-powered
-            gut-health companion: log meals, medications (including infusions),
-            and symptoms in seconds. Then see
-            <strong>clear, personal insights</strong>,
-            <strong>lag-aware correlations (0–7 days)</strong> to capture
-            delayed reactions, <strong>cycle tracking</strong> for
-            infusion/flare cadence, and a
-            <strong>3–7 day flare-risk window</strong> to help you plan ahead.
-            All core analysis runs <strong>on your device</strong> for privacy;
-            you control exports and backups.
+            & ulcerative colitis) in mind. Log meals, medications (including
+            infusions), and symptoms, then explore clear summaries of your
+            recorded patterns. Your tracking logs are stored locally on your
+            device; optional AI food analysis sends selected photos or text
+            to Google Gemini through Supabase with your consent.
+            Explore my complete <strong>machine-learning demo</strong> in the
+            Algorithm Lab: simulated data, real working code, and a look inside
+            the algorithms — built from my coursework, without claiming to
+            predict clinical flares.
           </p>
           <a href="about.html" class="founder-story-btn">My Story</a>
+          <a href="algorithms.html" class="founder-story-btn algorithm-lab-link">Explore the Algorithm Lab <span aria-hidden="true">↗</span></a>
+          <p class="algorithm-lab-description">23 working demos. Interactive charts. The math behind every model.</p>
           <div class="now-available">Now Available</div>
           <div class="badges">
             <a href="https://apps.apple.com/us/app/gutopia/id6749170728" target="_blank" rel="noopener noreferrer">
@@ -327,7 +331,8 @@
             <a href="terms.html">Terms of Service</a> ·
             <a href="delete-account.html">Delete Account</a> ·
             <a href="support.html">Support</a> ·
-            <a href="about.html">About</a>
+            <a href="about.html">About</a> ·
+            <a href="algorithms.html">Algorithm Lab</a>
           </div>
         </div>
       </section>
@@ -337,7 +342,7 @@
       <div class="container">
         <small
           >© <span id="y"></span> Gutopia. All rights reserved. · Effective &
-          Last Updated: September 21, 2025</small
+          Last Updated: October 6, 2026</small
         >
       </div>
     </footer>

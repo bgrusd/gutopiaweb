@@ -25,28 +25,28 @@
   </header>
   <main>
     <h1>Gutopia Privacy Policy</h1>
-    <p class="meta"><strong>Effective Date:</strong> September 21, 2025<br><strong>Last Updated:</strong> September 21, 2025</p>
+    <p class="meta"><strong>Effective Date:</strong> September 21, 2025<br><strong>Last Updated:</strong> October 6, 2026</p>
 
     <h2>1. Summary (Plain English)</h2>
     <ul>
-      <li><strong>Your health data stays on your device</strong> - We do not upload it to our servers</li>
-      <li><strong>Cloud data is minimal</strong> - Limited to authentication (email, encrypted password, tokens)</li>
-      <li><strong>No selling or sharing</strong> - We don't sell your data or use it for advertising</li>
+      <li><strong>Tracking logs are stored locally</strong> - Symptom, food and medication logs are not cloud-synced; optional AI food analysis sends selected content as explained below</li>
+      <li><strong>Cloud services support accounts and optional AI</strong> - Supabase handles authentication, food-analysis requests and account-linked usage metadata</li>
+      <li><strong>No sale or advertising use</strong> - We do not sell your data or use it for advertising; optional service processing is described below</li>
       <li><strong>You control backups</strong> - iCloud/Google backups are managed by you through your device</li>
       <li><strong>Delete anytime</strong> - Remove your account and all local data whenever you want</li>
     </ul>
 
     <h2>2. Data Controller</h2>
-    <p><strong>Gutopia Inc.</strong> is the controller of personal data we process (limited to authentication and support).</p>
+    <p><strong>Gutopia Inc.</strong> is the controller of personal data we process (including accounts, optional food analysis, usage metadata and support).</p>
     <p><strong>Contact:</strong> <a href="mailto:privacy@gutopia.ai">privacy@gutopia.ai</a></p>
 
-    <h2>3. What We DO NOT Collect or Store</h2>
-    <p>We do NOT upload to our servers:</p>
+    <h2>3. Local Tracking and Data We Do Not Collect</h2>
+    <p>The app does not cloud-sync your tracking database. The following remain local unless you choose an export, share content, use an OS backup, or submit selected content for optional food analysis:</p>
     <ul>
       <li>Health logs, symptoms, or metrics</li>
       <li>Medication records</li>
       <li>Food diaries and entries</li>
-      <li>Photos stored in the app</li>
+      <li>Photos stored in the app, except those you select to send for AI food analysis</li>
       <li>Precise location data</li>
       <li>Contacts or calendar data</li>
       <li>Cross-app tracking data</li>
@@ -64,26 +64,24 @@
     </ul>
     <p><strong>Purpose:</strong> To create and secure your account</p>
 
-    <h3>B. Food Analysis (Anonymous & Temporary)</h3>
-    <p>When you use our nutrition analysis feature:</p>
+    <h3>B. Optional Food Analysis</h3>
+    <p>When you choose AI nutrition analysis and accept the app's food-analysis consent:</p>
     <ul>
-      <li>Food photos or text descriptions are sent to AI services</li>
-      <li><strong>NO</strong> identifying information is included (no user ID, email, or metadata)</li>
-      <li>Data is processed immediately for nutritional information</li>
-      <li>We do <strong>not</strong> store these photos or descriptions</li>
-      <li>Only nutritional results are returned and saved locally on your device</li>
+      <li>Your food text description or selected photo is sent through the Supabase <code>gemini-proxy</code> to Google Gemini</li>
+      <li>The request uses your signed-in Supabase session and is associated with your account by our backend; it is not an anonymous request</li>
+      <li>The analysis result is returned to the app and can be saved with your local food log</li>
+      <li>You can decline analysis and enter food information manually</li>
     </ul>
-    <p><strong>Purpose:</strong> To provide nutritional information</p>
-    <p><strong>Privacy Protection:</strong> Completely anonymous - the AI service cannot connect this data to you</p>
+    <p><strong>Purpose:</strong> To estimate food and nutrition information. AI estimates may be inaccurate.</p>
+    <p><strong>Third-party processing:</strong> Supabase and Google process these requests under their applicable policies. We do not promise that providers retain no request content or operational logs. See the providers' privacy information for their processing and retention practices.</p>
 
     <h3>C. API Usage Monitoring</h3>
     <ul>
-      <li>Timestamps of API feature usage (e.g., food analysis requests)</li>
-      <li>Daily and monthly usage counts</li>
-      <li>Request type and status (success/failure)</li>
-      <li>No health content is logged, only usage metadata</li>
+      <li>Usage is linked to your account and can include request type, timestamp, success/failure status, response time, error information and token counts</li>
+      <li>Operational metadata can include IP address, user agent and app version</li>
+      <li>This monitoring supports usage limits, abuse prevention and service operations; it does not cloud-sync your tracking database</li>
     </ul>
-    <p><strong>Purpose:</strong> Prevent abuse, ensure fair use, manage service costs, and maintain quality for all users</p>
+    <p><strong>Purpose:</strong> Prevent abuse, ensure fair use, manage service costs, and maintain service quality.</p>
 
     <h3>D. Security and Operations</h3>
     <ul>
@@ -117,7 +115,7 @@
     <ul>
       <li><strong>Contract:</strong> To create and maintain your account</li>
       <li><strong>Legitimate Interests:</strong> Security, fraud prevention, service integrity</li>
-      <li><strong>Consent:</strong> Push notifications and optional features</li>
+      <li><strong>Consent:</strong> Optional notifications and sending selected food content for AI analysis</li>
     </ul>
 
     <h2>6. On-Device Storage</h2>
@@ -139,12 +137,15 @@
     <h2>8. Third-Party Services</h2>
     <p>We use minimal third-party services:</p>
     <ul>
-      <li><strong>Supabase:</strong> Authentication and account data</li>
-      <li><strong>AI Services (OpenAI/Gemini):</strong> Anonymous food nutrition analysis (no user data sent, no storage)</li>
+      <li><strong>Supabase:</strong> Authentication, account data, optional food-analysis proxy and account-linked usage records</li>
+      <li><strong>Google Gemini:</strong> Optional analysis of selected food photos or descriptions. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></li>
       <li><strong>Apple/Google:</strong> Push notifications</li>
       <li><strong>App Stores:</strong> Payment processing</li>
     </ul>
-    <p>All third parties are required to protect your data and process it only per our instructions.</p>
+    <p>Third-party services have their own terms and privacy policies. Their handling of submitted content and operational data is subject to those policies.</p>
+
+    <h3>Website Algorithm Lab</h3>
+    <p>The <a href="algorithms.html">Algorithm Lab</a> generates synthetic data in browser memory and runs its demo models locally. It does not connect to your account, read personal health logs or upload algorithm inputs. The website loads its font from Google Fonts; that presentation request is separate from the local model calculations.</p>
 
     <h2>9. Security Measures</h2>
     <p>We implement:</p>
