@@ -1,30 +1,32 @@
-# Gutopia: ML algorithms, implementation history, and methodology
+# Gutopia: understanding the ML algorithms and how they were built
 
-Reviewed October 6, 2026. This guide documents the coursework algorithms and the intended simpler way to keep them available **inside the same app, on demo data**.
+Reviewed October 6, 2026. This guide explains the coursework algorithms in everyday language, then shows the mathematics, implementation choices and evidence behind them. All demonstrations belong **inside the same app, on demo data**.
 
-**Implementation status:** historical code and the new direct package have been reviewed in source. All 23 workflow/variant handlers are present in demoAlgorithms/workflows.js and in the Demo Algorithms menu. The final automated suite passes **267 tests across 29 suites**, including actual execution and UI selection of all 23 handlers, numerical fixtures, SQLite integration, lifecycle and feature checks. The iOS JavaScript/Hermes export also succeeds. Native-device release verification remains pending. Descriptions labeled “archived implementation” describe Git history. The new package is a transparent, simplified set of demonstrations, not byte-for-byte restoration of the historical pipeline; section 10 lists its mapping and deliberate differences.
+**Current status:** all **23 demonstrations** are available through direct functions in `demoAlgorithms/workflows.js` and the Demo Algorithms menu. The automated app suite passes **270 tests across 29 suites**. Those tests include real numerical calculations, selection of all 23 demonstrations in the UI, SQLite integration, lifecycle behavior and feature checks. The final iOS JavaScript/Hermes export succeeds. Native-device release checks remain pending.
 
-## 1. Purpose and boundaries
+There are two implementations to understand. **Archived implementation** means the original coursework code preserved in Git. **Current demo** means the simpler implementation now in the app. The current version keeps the algorithm families and their educational value, with explicit changes to some targets, data preparation and numerical methods. It does not reproduce every historical behavior byte for byte. Section 10 explains the differences.
 
-Gutopia serves two related purposes: a useful personal symptom/food/medication tracker, and a demonstration of the author's programming and machine-learning work. Preserving the coursework does not require using experimental model output to make personal health decisions.
+## 1. What this guide is for
 
-The product direction is **one application**. Real-data tracking retains transparent logged observations. Demo Mode provides the complete algorithm collection, inspectable outputs and visual results; this guide supplies the technical explanations. Editable simulation controls can be added without changing the execution architecture. A demonstration can show an algorithm operating correctly on a simulated system without establishing that it predicts Crohn's disease activity.
+Gutopia grew from a machine-learning class project into a personal symptom, food and medication tracker. Both purposes can live in one app. The tracker records what happened; Demo Mode lets you explore what the algorithms do on a simulated dataset whose rules we know.
 
-Three questions must remain separate:
+You do not need to understand every equation before trying a demonstration. Start with **what it does**, look at **how the current demo works**, and use **how to read the result** to interpret the output. The mathematical detail is there when you want to inspect how the code reaches its answer. Future editable simulation controls can use the same direct execution route.
 
-1. **Does the numerical implementation work?** For example, does PCA recover a known low-rank structure or does DTW align two warped sequences?
-2. **Does this particular demo model generalize to held-out simulated observations?** This depends on targets, data generation, preprocessing, and evaluation.
-3. **Does it predict a meaningful real-world health outcome?** This has not been established by the code review or by a successful demo.
+Keep three different questions in mind:
 
-The guide does not recommend medication changes or food restrictions. Terms such as “flare” and “health score” below refer to historical module names or explicitly simulated targets unless stated otherwise.
+1. **Is the calculation correct?** For example, can a regression recover weights we deliberately put into simulated data? Can DTW correctly align two short sequences?
+2. **Does the fitted model predict new simulated examples?** A model can memorize its training data and still perform badly on observations it has not seen.
+3. **Does it predict a meaningful real health outcome?** The code review and demo tests do not establish this. Successful simulation results cannot answer it on their own.
 
-## 2. Historical sources and preservation
+The demonstrations show programming, mathematics, evaluation and clear explanations. They do not recommend medication changes or food restrictions. Historical words such as “flare” and “health score” refer to old module names or explicitly simulated rules. A model-generated number is not a diagnosis or an observation to save in personal logs.
 
-The complete main pipeline before its July removal is recoverable from revision **e248b0c7185ec9042163e6534587dba26bfedd45**. It was removed in **920b4166915b116bfeae52ca18ff27e3cadc2964**. The earlier cleanup removed additional variants; recover those from **51a0536fc09205cd24313390ac2aefd81f1af077**, the parent of **ed1aa9c**.
+## 2. Where the original work is preserved
 
-Revision **07035c6**, dated July 9, 2025 and titled “Complete analytics pipeline unit tests with 100% coverage,” is an additional useful coursework-era snapshot. A commit title is not proof that this was the class submission; the exact submitted revision still needs identifying.
+The complete main pipeline before its July removal is available at Git revision **e248b0c7185ec9042163e6534587dba26bfedd45**. Removal happened in **920b4166915b116bfeae52ca18ff27e3cadc2964**. Five earlier variants can be inspected at **51a0536fc09205cd24313390ac2aefd81f1af077**, the parent of cleanup commit **ed1aa9c**.
 
-To inspect original code without replacing current files:
+An additional coursework-era snapshot is **07035c6**, dated July 9, 2025, with the title “Complete analytics pipeline unit tests with 100% coverage.” That title is a historical record, not confirmation of which revision was submitted to the class. The exact submission revision still needs identifying.
+
+The following commands read an archived file without replacing any current app files:
 
 ~~~sh
 git show e248b0c:analytics-pipeline/LassoRegression.js
@@ -32,11 +34,15 @@ git show e248b0c:analytics-pipeline/FlarePredictionLogisticLasso.js
 git show 51a0536:analytics-pipeline/OptimizedDTWSlidingWindow.js
 ~~~
 
-Local Git tags `ml-coursework-main-archive` and `ml-coursework-variants-archive` preserve the two reviewed historical snapshots. Retain a remote backup before further cleanup. Preserve historical algorithms as code and documentation, while replacing the orchestration around them. Files named _old, _backup, _v2, fixed_*, or alternative DTW implementations are versions to compare, not automatically distinct algorithms. A genuinely different optimization or target definition should be listed as a selectable variant rather than silently discarded.
+Local Git tags `ml-coursework-main-archive` and `ml-coursework-variants-archive` preserve the two reviewed snapshots. A remote backup should also be retained before further cleanup. This means simplifying the app does not require losing the original numerical work.
 
-## 3. Complete inventory
+Files with names such as `_old`, `_backup`, `_v2` or `fixed_*` are usually revisions of an existing idea. They should be compared before being counted as extra algorithms. When a version introduces a genuinely different method or target rule, it deserves an explained variant of its own.
 
-The last main engine registers **18 workflows**: 16 analytical workflows and two scenario workflows. Earlier code supplies five additional variants described in section 7. Infrastructure classes such as caches, preprocessors, workers, and window-quality evaluators are supporting tools rather than additional predictive algorithms.
+## 3. The complete collection
+
+The last main engine registered **18 workflows**: 16 analytical workflows and two scenario workflows. Section 7 covers five earlier variants, bringing the current menu to **23 callable demonstrations**. Several reuse the same underlying numerical routine. A workflow is the whole demonstration—preparing data, fitting or comparing, evaluating and displaying—not necessarily a completely separate solver.
+
+The historical filenames and IDs below make it possible to locate the original source. “Regression” means predicting a number; “classification” means predicting a category; “clustering” means grouping similar observations without predefined labels.
 
 | # | Historical ID | Source file at e248b0c | Category |
 |---|---|---|---|
@@ -59,293 +65,263 @@ The last main engine registers **18 workflows**: 16 analytical workflows and two
 | 17 | scenario_generator | ScenarioGenerator.js | Hypothetical scenario construction |
 | 18 | scenario_executor | ScenarioExecutor.js | Model-based scenario simulation |
 
-The old documentation's “19 algorithms” count does not match these 18 registrations. “ElasticNet” in the source can mean the low-level regression solver, the direct forecasting workflow, or the PCA forecasting workflow; these are related but different demonstrations.
+The old “19 algorithms” description does not match the 18 main registrations. Names can also hide important distinctions: `ElasticNet` can refer to the low-level fitting routine, a direct forecasting workflow or a forecasting workflow that first uses PCA. The explanations below keep those uses separate. Caches, workers and preprocessors support the demonstrations; they are not extra predictive algorithms.
 
-## 4. Shared data and numerical foundations
+## 4. The ideas shared by the demonstrations
 
-### 4.1 Rows, features, targets, and time
+### 4.1 Inputs, answers and calendar dates
 
-A row represents a dated simulated observation. A **feature** is an input such as pain, energy, a food-tag indicator, or a prior-day value. A **target** is the number or class being learned. The matrix X has one row per training sample and one column per feature; y contains the corresponding targets.
+Imagine a spreadsheet with one dated observation per row. A **feature** is a value the model can use as an input, such as energy or a simulated food indicator. A **target** is the answer we want it to learn, such as tomorrow's simulated pain. In the mathematics, `X` is the input table and `y` is the matching list of answers. Each row of `X` must line up with the correct entry in `y`.
 
-Archived preprocessing maps SQLite columns to names such as entryDate, painIntensity, moodValence, moodArousal, energyPhysical, energySocial, bowelFrequency, bowelBlood, healthScore, and compositeScore. It adds tagFeatures, medicationFeatures, and lagFeatures. Default lag periods are 1, 3, and 7 days. A replacement should keep a single documented mapping and feature order.
+The archived adapter translated SQLite columns into fields such as `entryDate`, `painIntensity`, `moodValence`, `moodArousal`, `energyPhysical`, `energySocial`, `bowelFrequency`, `bowelBlood`, `healthScore` and `compositeScore`. It added `tagFeatures`, `medicationFeatures` and `lagFeatures`. A **lag** is an earlier value: the archived default lags were 1, 3 and 7 days. The current demo uses a smaller, explicit feature list described in section 10.
 
-Forecasting uses X at time t with a target at time t+h. An event-window classifier uses a label defined over a specified future interval. These require date-aware pairing: an absent calendar day must not silently turn the next recorded row into “tomorrow.” Rows near the end of a fixture without a full future interval have unknown labels and must be excluded from that training target.
+A **horizon** is how far ahead a prediction looks. Pairing inputs at day `t` with an answer at `t+h` predicts an endpoint. Asking whether anything happened during the next `h` days is a different target. If Tuesday is missing, Wednesday must not become Monday's “tomorrow.” If a required future day or interval is unavailable, its answer is unknown and that sample cannot train that target.
 
-### 4.2 Missing values are information
+### 4.2 Missing does not mean zero
 
-Missing pain is not zero pain. Missing food records do not establish that a food was not eaten. Unknown medication status is not automatically a skipped dose. The adapter should retain missingness and either exclude incomplete samples for a stated calculation or use an explicit, documented imputation policy.
+An empty pain field is not a pain score of zero. No recorded food does not prove the food was absent. No medication record does not establish a skipped dose. **Imputation** means filling a missing value with an assumption; it needs to be visible because it changes the data used by the model.
 
-Demo fixtures may intentionally include generated values and synthetic targets; their provenance must remain visible. Any Monte Carlo sample or imputed value used to demonstrate uncertainty should remain separate from the observed/demo-source records. Do not save simulated predictions as personal symptom logs.
+The current demo-log adapter fills missing feature values with zero. That limitation is disclosed in the app and in section 10. Missing pain stays missing. The complete seeded fixture avoids absent-feature ambiguity because all its inputs are generated deliberately. Any future missing-value sampling should remain marked as simulation and separate from the original records. Predictions must never become personal symptom observations.
 
-### 4.3 Scaling and preprocessing
+### 4.3 Putting different units on a comparable scale
 
-Continuous inputs commonly need centering or standardization so units do not dominate distances or penalties. Binary indicators require deliberate handling; standardizing a rare indicator changes its interpretation. Scaling is a modeling choice, not proof of validity.
+Energy, binary indicators and other inputs can have different ranges. **Standardization** subtracts a column's average and divides by its standard deviation: `z = (x - mean) / standardDeviation`. This prevents a large numeric range from automatically dominating a distance or coefficient penalty. A binary column may also be standardized; when an indicator is rare, that changes what a one-unit coefficient means.
 
-Fit means, variances, feature selection, and PCA on **training rows only**, then apply the fitted transformation unchanged to validation/test rows. Fitting preprocessing on the entire dataset allows evaluation information into the model. [scikit-learn's leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html)
+For predictive evaluation, calculate the averages, scales and PCA directions using the **training rows only**. Reuse those values unchanged on held-out rows. Otherwise the model gets a preview of the examples intended to test it. This is called **data leakage**. It can make a result look better than an honest future-prediction test. [scikit-learn's leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html)
 
-### 4.4 Shared low-level routines
+### 4.4 Fitting routines, penalties and stopping rules
 
-The archived solver files implement coordinate-descent LASSO/ElasticNet, proximal-gradient logistic LASSO, and power-iteration PCA in JavaScript. This explains why preserving the numerical work need not require restoring the large engine or every removed ml-* dependency.
+The archive contains handwritten JavaScript routines for LASSO/ElasticNet, logistic LASSO and PCA. Keeping these mathematical ideas does not require recovering the entire engine or every removed `ml-*` dependency. The current package uses reusable numerical functions called by small, named workflows.
 
-The replacement package should document the objective's normalization convention, numerical tolerances, iteration limits, convergence status, zero-variance behavior, and random seed. A model object should retain feature names and fitted preprocessing parameters alongside coefficients. Predictions must fail visibly on incompatible feature dimensions.
+A fitting routine tries to minimize an **objective**: a number measuring prediction error plus any coefficient penalty. An **iteration** is one round of its updates. A tolerance says how small a change should become before stopping. Reaching an iteration limit is not proof that the best solution was reached; **convergence** means the updates have settled according to a stated rule.
+
+To reproduce a fitted model, keep its feature order, means/scales, coefficients, parameters and, where randomness is used, its seed. A seed makes the same pseudo-random sequence available again. A wrong feature count should produce a clear error rather than a plausible-looking answer. Section 10 records the current stopping rules and the remaining lack of complete convergence diagnostics.
 
 ## 5. The 18 main workflows
 
-### 5.1 LASSO regression
+### 5.1 LASSO regression: a weighted recipe with fewer ingredients
 
-**What it does.** Fits a continuous target using a weighted sum of inputs, with an L1 penalty that can set coefficients to zero. This demonstrates regression, regularization, and feature selection.
+**What it is and where it is used.** LASSO predicts a number from a weighted sum of inputs. It is useful when many candidate inputs exist and you want a model that can leave some out. Think of a recipe whose less useful ingredient weights can shrink all the way to zero.
 
-**Intended mathematics.** Minimize squared prediction error plus a penalty proportional to the sum of absolute coefficient values. The intercept is unpenalized. Coordinate descent updates one coefficient at a time, using soft thresholding. Exact penalty values depend on whether the error is summed or averaged. [LASSO objective](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html)
+**How it works.** The prediction is `ŷ = intercept + Σ(weight_j × input_j)`. Fitting balances squared prediction error against an **L1 penalty**, the sum of the absolute weights. The current objective is `mean((y - ŷ)²)/2 + λ Σ|weight_j|`; `λ` controls the penalty. The intercept is unpenalized. **Coordinate descent** updates one weight at a time. **Soft thresholding** subtracts a penalty-sized amount and sets sufficiently small weights to zero. [LASSO objective](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html)
 
-**Archived implementation.** LassoRegression.execute inherits the standard wrapper, extracts tag/medication/lag features, and calls trainLasso. It generally defaults to healthScore; options can select a different continuous target. The workflow accepts very small datasets for demonstration and generates trigger-oriented prose.
+**Archived implementation.** `LassoRegression.execute` used the standard wrapper, extracted tag, medication and lag features, and called `trainLasso`. It generally predicted `healthScore`, with other continuous targets selectable through options. Its minimum of three samples was a demo convenience, and its prose framed selected inputs as triggers.
 
-**Outputs.** Intercept, coefficients, selected feature names, trigger-importance ranking, fit statistics, and explanatory data for the UI.
+**Current demo and outputs.** `runLasso` predicts one-day-ahead simulated pain. It returns predictions, standardized-feature coefficients and training/held-out evaluation results. The underlying fitted model also has an intercept; the current workflow does not expose it separately. The archive returned selected feature names, rankings and fit/explanation payloads. Compare the current weights with the inputs deliberately planted in the fixture. A zero coefficient means the fitted model has left that input out under the selected penalty.
 
-**Why it is useful in the demo.** A seeded sparse linear system can show known relevant inputs being recovered while irrelevant ones shrink.
+**How to read it.** Lower held-out error means better prediction on the unseen simulated period. A large weight describes this model's association, not a causal food effect. Correlated inputs can share or exchange weights. Compare against a constant mean and the last observed value, and check more than one seed before claiming reliable recovery.
 
-**Limitations.** A selected coefficient is an association conditional on this feature set, not a causal trigger. Correlated inputs can trade coefficients between runs. Compare against a mean/persistence baseline and test recovery across seeds and held-out periods.
+### 5.2 ElasticNet: a gentler way to shrink related inputs
 
-### 5.2 ElasticNet regression
+**What it is and where it is used.** ElasticNet is a weighted-sum predictor that combines LASSO's ability to remove inputs with a second penalty that smoothly reduces large weights. It is often useful when inputs overlap or move together, because pure LASSO may choose one and discard the others.
 
-**What it does.** Combines LASSO's L1 penalty with an L2 penalty that shrinks coefficients smoothly. It illustrates the tradeoff between sparse selection and stability with correlated inputs.
+**How it works.** The objective is `mean((y - ŷ)²)/2 + λ[α Σ|weight_j| + (1-α) Σweight_j²/2]`. The absolute-value part is L1; the squared-weight part is L2. `λ` controls total shrinkage and `α` controls the mix. The current code calls that mixing fraction `l1Ratio`. Like LASSO, the solver updates one coefficient at a time and leaves the intercept unpenalized. [ElasticNet objective and parameter convention](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNet.html)
 
-**Intended mathematics.** Add both absolute-value and squared-coefficient penalties to squared error. A mixing parameter controls their relative weight; the overall penalty controls shrinkage. [ElasticNet objective and parameter convention](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNet.html)
+**Archived implementation.** `ElasticNet.execute` extracted trigger and lag features and called the handwritten `trainElasticNet`. The helper updated residual errors in place. Historical names were confusing: its `alpha` meant the L1/L2 mix, while some wrappers used that name differently. Comparing equations is safer than assuming matching names mean matching behavior.
 
-**Archived implementation.** ElasticNet.execute calls the handwritten trainElasticNet routine after extracting trigger and lag features. The solver updates residuals in place and leaves the intercept unpenalized. Historical parameter naming is confusing: alpha in the low-level solver is the L1/L2 mixing fraction, whereas some wrappers use alpha differently. Preserve the equation, not just the parameter name.
+**Current demo and outputs.** `runElasticNet` predicts one-day-ahead simulated pain and shows coefficients, predictions and training/holdout metrics. The archive additionally returned coefficient rankings, selected-feature counts and explanation payloads. Run it beside LASSO to see how the two penalties change the weights.
 
-**Outputs.** A fitted model, coefficient ranking, selected-feature counts, fit metrics, and explanation payloads.
+**How to read it.** A smaller or more stable coefficient is a modeling result, not new evidence about health. Regularization can restrain a model; it cannot supply information absent from the data. Reference-solver comparisons must match the objective's averaging and penalty conventions.
 
-**Why included.** Run it beside LASSO on correlated synthetic inputs to demonstrate different coefficient behavior.
+### 5.3 Logistic LASSO: a weighted yes-or-no classifier
 
-**Limitations.** Regularization does not create missing information or validate a health outcome. Test the objective against a reference solver under an explicitly matched penalty convention.
+**What it is and where it is used.** Logistic regression predicts which of two classes an example belongs to. Common demonstrations include yes/no labels and detection problems. Here, the question is whether simulated pain at the target date reaches a visible threshold. LASSO adds sparse input selection.
 
-### 5.3 Logistic LASSO regression
+**How it works.** First compute a weighted score `s = intercept + Σ(weight_j × input_j)`. The **sigmoid**, `p = 1/(1 + exp(-s))`, maps that score between zero and one. Fitting minimizes **binary cross-entropy**—a loss that penalizes confident wrong answers—plus an L1 penalty. A gradient update reduces the smooth loss; a **proximal** soft-threshold step shrinks weights. A separate decision threshold turns `p` into a class. [Logistic regression reference](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
 
-**What it does.** Predicts a binary class with a sigmoid of a linear score and an L1 penalty. Unlike linear regression, its output lies between zero and one.
+**Archived implementation.** `LogisticLassoRegression.execute` extracted trigger features, usually chose `painIntensity`, converted targets into two classes and called `trainLogisticLasso`. It required both classes and did not penalize the intercept.
 
-**Intended mathematics.** Minimize binary cross-entropy plus L1 shrinkage. A gradient step updates the smooth loss; a proximal soft-threshold step applies the sparse penalty. Classification additionally requires a selected decision threshold. [Logistic regression reference](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
+**Current demo and outputs.** `runLogisticLasso` predicts whether next-day simulated pain is **at least 5**. It shows model probabilities, predictions, standardized coefficients and classification results. The label rule is part of the model, not a medical definition.
 
-**Archived implementation.** LogisticLassoRegression.execute extracts trigger features, defaults to painIntensity, converts the target to binary, requires both classes, and calls the proximal-gradient trainLogisticLasso helper. The intercept is unpenalized.
+**How to read it.** A probability-shaped output is not automatically a calibrated probability: predictions near 0.8 would need to be correct about 80% of the time to deserve that interpretation. Inspect class frequency, the decision threshold and the held-out confusion matrix. An apparently high accuracy can come from always choosing the more common class.
 
-**Outputs.** Class probabilities, coefficient-based feature rankings, risk/protective-factor lists, classification metrics, and current-input explanations.
+### 5.4 Correlation: do two things rise and fall together?
 
-**Why included.** Shows the difference between a predicted number, a predicted class, and a probability. A planted binary simulation can expose decision-boundary and regularization effects.
+**What it is and where it is used.** Correlation is a descriptive summary of how two quantities move together. It is useful for exploring data before fitting a model and for spotting deliberately planted relationships. It does not tell us which quantity caused the other.
 
-**Limitations.** A sigmoid output is not automatically calibrated. A class created from an arbitrary pain threshold is that threshold's class, not a medical event. Report class prevalence, decision threshold, and held-out confusion matrix.
+**How it works.** Pearson correlation is `r = Σ[(x-mean(x))(y-mean(y))] / sqrt(Σ(x-mean(x))² × Σ(y-mean(y))²)`. Values near +1 mean a strong rising straight-line pattern, near -1 a falling pattern, and near zero little linear association. Rank correlation asks a different question about ordering. Pearson correlation is undefined for a constant column; a reported fallback zero should not be read as evidence of independence. [SciPy Pearson correlation documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html)
 
-### 5.4 Correlation analysis
+**Archived implementation.** `CorrelationAnalysis.execute` compared symptoms and binary trigger variables, including lagged pairs, and returned `allCorrelations` and a `correlationMatrix`. Metadata allowed two samples but execution required three. Neither threshold establishes that a result is statistically persuasive.
 
-**What it does.** Summarizes how two measured quantities vary together, including selected calendar lags. It does not learn an intervention or a causal relationship.
+**Current demo and outputs.** `runCorrelation` compares each of the six current inputs with next-day simulated pain and also shows an input-to-input correlation matrix. Historical outputs additionally included valid-pair counts, lag details and significance estimates where implemented.
 
-**Intended mathematics.** Pearson correlation measures standardized linear covariation; rank correlation answers a different monotonic-association question. Constant columns have no defined Pearson correlation. Statistical intervals/tests depend on their assumptions. [SciPy Pearson correlation documentation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html)
+**How to read it.** Compare the sign and size with the known simulation rules. Searching many features and lags can produce a large value by chance. Missing pairs and repeating time patterns matter; standard tests that assume independent rows may be inappropriate for a daily series. Record which comparisons were explored rather than showing only the largest one.
 
-**Archived implementation.** CorrelationAnalysis.execute extracts symptoms and binary trigger variables, calculates pairwise and lagged comparisons, and returns allCorrelations plus a correlationMatrix. Metadata says minSamples:2, while execution requires at least three entries. These permissive values are UI behavior, not universal evidence thresholds.
+### 5.5 PCA: finding the main directions in a cloud of points
 
-**Outputs.** Feature-pair names, correlation values, valid-pair counts, lag metadata, and, where implemented, significance estimates.
+**What it is and where it is used.** Principal component analysis, or PCA, compresses several related numeric columns into fewer summary coordinates. It is used for visualizing many-dimensional data and reducing redundant inputs. Imagine turning a camera around a cloud of points until the directions with the most spread become visible.
 
-**Why included.** Provides an interpretable baseline and a way to visualize a planted simulated lag before fitting a model.
+**How it works.** Center the input table, calculate directions that capture variance, then project each row onto those directions. A direction is a **component**; its weights on the original inputs are **loadings**; a row's location along it is its component **score**. In symbols, `Z = (X - trainingMeans) × components`. The directions are orthogonal, meaning perpendicular. Explained variance measures captured spread, not prediction accuracy. Scaling before PCA is a separate choice. [PCA reference](https://scikit-learn.org/stable/modules/decomposition.html#pca)
 
-**Limitations.** Repeated testing across many features/lags can promote chance maxima. Report complete-pair counts, missingness, and the explored comparison set. Serially dependent rows complicate standard independent-sample inference.
+**Archived implementation.** `PCAAnalysis.execute` called `applyPCA`, which used random starting vectors, power iteration and orthogonalization. It returned centered data `Xc`, projected data `Z`, means, directions and explained-variance fractions, with component count or retained variance controlling compression.
 
-### 5.5 Principal component analysis
+**Current demo and outputs.** `runPca` standardizes the six demo inputs and shows three components, loadings, projected points and variance fractions. The current kernel uses **Jacobi eigenanalysis**, which removes covariance off-diagonal terms through rotations. This is a different numerical method from the archive. Tests check a known rank-one fixture, orthogonal/unit directions, an eigenvalue and reuse of the fitted transform.
 
-**What it does.** Rotates a numeric feature space into orthogonal directions capturing variance. It is unsupervised: it can summarize structure without a target label.
+**How to read it.** A component can summarize several inputs without predicting pain. Reversing a component's sign leaves its meaning unchanged; nearly tied variances can also rotate directions. Judge the recovered space and reconstruction, rather than demanding identical signs. Device visualization remains to be checked.
 
-**Intended mathematics.** Center the training matrix, find principal directions by eigenanalysis/SVD, and project onto selected components. Standardizing before PCA is a separate choice; variance captured is not predictive accuracy. [PCA reference](https://scikit-learn.org/stable/modules/decomposition.html#pca)
+### 5.6 Naive Bayes: combining simple pieces of evidence
 
-**Archived implementation.** PCAAnalysis.execute extracts a feature matrix and calls applyPCA. That helper uses power iteration with orthogonalization, starts from random vectors, and selects components by count or retained variance. It returns centered data Xc, projected data Z, means, component directions, and explained-variance fractions. The replacement kernel uses Jacobi eigenanalysis; that is a numerical-method change, not a claim of byte-for-byte equivalence. The focused numerical tests verify a known rank-one fixture and fitted projection; device visualization verification remains pending.
+**What it is and where it is used.** Naive Bayes estimates a class by combining how common that class is with how typical the inputs are within it. It is commonly demonstrated with simple classification tasks such as document categories or on/off features. “Naive” describes its simplifying assumption: inputs are treated as independent once the class is known.
 
-**Outputs.** Component loadings, projections, variance fractions, component count, and feature/pattern descriptions.
+**How it works.** Bayes' rule gives `classWeight ∝ prior(class) × product of featureLikelihoods`. A **prior** is the class frequency before considering inputs. A **likelihood** describes how often an input occurs within that class. Bernoulli Naive Bayes uses on/off inputs; Gaussian Naive Bayes assumes continuous inputs follow bell-shaped distributions. Adding small counts, called **Laplace smoothing**, prevents an unseen combination from receiving a forced zero. Adding log likelihoods avoids multiplying many tiny numbers. [Naive Bayes variants](https://scikit-learn.org/stable/modules/naive_bayes.html)
 
-**Why included.** A low-rank synthetic fixture can visibly collapse many correlated inputs into two or three dimensions.
+**Archived implementation.** `EnhancedNaiveBayes` was mainly a Bernoulli trigger-frequency classifier with smoothed on/off probabilities. It grouped `healthScore` into excellent (at least 80), good (60), fair (40), poor (20) and otherwise flare. Its truthiness fallback could replace a valid zero score with 50. Separate dropping of feature rows and label rows also risked misalignment.
 
-**Limitations.** A high-variance direction need not predict the target. Component signs are arbitrary, and nearly equal eigenvalues make individual directions unstable. Test the recovered subspace and reconstruction, not only exact vector signs.
+**Current demo and outputs.** `runNaiveBayes` uses a binary label: simulated pain at the selected future endpoint is **at least 5**. An input is “on” when it is greater than that input's **training mean**. Those thresholds are fitted model values, not arbitrary health limits. Outputs describe class probabilities and the fitted model. An optional Gaussian helper exists in the math package but is not another menu item.
 
-### 5.6 Naive Bayes classification
+**How to read it.** Compare this simple probability model with logistic regression. Correlated inputs can double-count evidence under the independence assumption. Finite, smoothed probabilities are tested; neither the old score bins nor the new binary threshold have acquired clinical meaning through those tests.
 
-**What it does.** Combines a class prior with feature likelihoods under a conditional-independence assumption.
+### 5.7 DBSCAN with PCA: finding dense groups and leaving outliers alone
 
-**Intended mathematics.** Compute posterior class weights proportional to the prior times the product of feature likelihoods. Bernoulli likelihoods suit binary indicators; Gaussian likelihoods model continuous inputs. Log-space computation avoids multiplying many tiny values. [Naive Bayes variants](https://scikit-learn.org/stable/modules/naive_bayes.html)
+**What it is and where it is used.** DBSCAN groups points that have enough nearby neighbors. It is useful for irregularly shaped groups and for identifying isolated points. Unlike methods that force every observation into a group, it can call a point **noise**.
 
-**Archived implementation.** EnhancedNaiveBayes is primarily a **Bernoulli-style trigger-frequency classifier**, with Laplace-smoothed on/off probabilities. It bins healthScore into excellent/good/fair/poor/flare labels and classifies currentFeatures. Its score accessor uses truthiness fallback, so a valid zero can become 50. Feature extraction can drop rows independently of label extraction; an aligned replacement must keep them together.
+**How it works.** Choose a distance, a neighborhood radius called `epsilon`, and a minimum point count. A **core point** has enough neighbors; connected core points grow a cluster. Nearby border points can join; other points remain noise. PCA can provide coordinates for plotting or can define the space where distances are measured—those are different choices. [DBSCAN reference](https://scikit-learn.org/stable/modules/clustering.html#dbscan)
 
-**Outputs.** State priors, conditional trigger probabilities, class probabilities, predicted state, and trigger-oriented explanations.
+**Archived implementation.** `DBSCANPCAClusteringAnalysis` advertised **Gower distance**, which combines mixed continuous/binary comparisons, along with score bins, adaptive epsilon and PCA visualization. The historical name did not imply that clustering itself happened in the PCA plot. Tiny datasets also had fallback outputs.
 
-**Why included.** Offers a simple probabilistic comparison with logistic regression.
+**Current demo and outputs.** `runDbscan` standardizes inputs, keeps the first two PCA coordinates, then uses ordinary Euclidean distance in that plane. Defaults are epsilon 0.7 and at least four neighbors, counting the point itself. It returns memberships and projected points; noise has label -1. Historical outputs included representative descriptions and distance settings.
 
-**Restoration distinction.** The main replacement workflow uses Bernoulli likelihoods, with continuous inputs binarized at their training means. Its synthetic label is pain at a selected future horizon greater than or equal to 5, rather than the archive's five score-bin classes. The threshold vector is part of the numerical model. A Gaussian helper additionally exists for continuous-input comparisons; it is not a separate current menu item. Neither family makes arbitrarily binned scores clinically meaningful. The focused numerical tests verify finite smoothed Bernoulli probabilities; device verification remains pending.
+**How to read it.** The groups answer a geometric question under these settings. Changing scale or radius can change them substantially. A group is not a discovered disease state. Current PCA-space clustering is deliberately different from archived Gower-space clustering; confirm memberships independently of how attractive the plot looks.
 
-### 5.7 DBSCAN with PCA visualization
+### 5.8 K-means with PCA: sorting points around three centers
 
-**What it does.** Finds dense neighborhoods, expands connected dense regions, and can leave isolated points as noise. It need not assign every day to a cluster.
+**What it is and where it is used.** K-means sorts points into a chosen number of groups, each represented by its average location or **centroid**. It is useful for compact groups and for showing how an iterative algorithm improves its assignments.
 
-**Intended mathematics.** Choose a distance, neighborhood radius, and minimum-neighbor count. Core points expand clusters; border points may join them; remaining points are noise. Projection is optional and can serve visualization independently of clustering. [DBSCAN reference](https://scikit-learn.org/stable/modules/clustering.html#dbscan)
+**How it works.** Pick starting centers, assign each point to its nearest center, move centers to their assigned points' averages, and repeat. The objective is the sum of squared distances to assigned centers, often called **inertia**. The number of groups `K`, the scaling and the starting centers all matter. Elbow and silhouette comparisons help inspect choices; neither identifies a uniquely true number of groups. [K-means reference](https://scikit-learn.org/stable/modules/clustering.html#k-means)
 
-**Archived implementation.** DBSCANPCAClusteringAnalysis advertises mixed continuous/binary features and **Gower distance**, score binning, adaptive epsilon, and PCA visualization. Thus its name does not mean that all clustering is performed in a PCA plane. It also has tiny-data fallback outputs.
+**Archived implementation.** `KMeansPCAClusteringAnalysis` aggregated mixed features, searched possible K values using elbow/silhouette-style criteria, and supplied PCA plotting data. Metadata defaulted to searching up to eight groups and included minimum-size safeguards.
 
-**Outputs.** Cluster memberships, noise points, representative descriptions, epsilon/distance metadata, and projected chart coordinates.
+**Current demo and outputs.** `runKMeans` uses a reproducible, distance-weighted initialization and fixes **K = 3** in the first two PCA coordinates. Outputs include assignments, centers and projected data. The routine makes at most 60 iterations; an empty group keeps its previous center, so constant data may occupy fewer than three groups.
 
-**Why included.** Demonstrates density clustering and outlier handling on a fixture with irregular groups and isolated days.
+**How to read it.** Compare it with DBSCAN: K-means assigns points to centers, while DBSCAN can leave noise unassigned. Group numbers are arbitrary and can swap between runs, so compare who is grouped together rather than exact numeric labels. A neat plot does not prove meaningful full-data groups.
 
-**Limitations.** Results depend on distance and radius. A PCA-space Euclidean replacement is a different variant from Gower-space clustering. A cluster is a geometric group, not a discovered disease state. Preserve noise labels and verify clustering separately from the plot.
+### 5.9 Dynamic time warping: comparing shapes that run at different speeds
 
-### 5.8 K-means with PCA visualization
+**What it is and where it is used.** Dynamic time warping, or DTW, compares sequences whose similar shapes happen at different speeds. It is useful for time-series matching and repeated-pattern demonstrations. Imagine two curves that both rise, peak and fall, but one reaches its peak a day later and takes longer to fall. Comparing Monday with Monday would call them different. DTW can stretch or compress their local time alignment so the rise matches the rise and the peak matches the peak. It changes which positions are compared; it does not change or invent the recorded pain values.
 
-**What it does.** Divides points into K groups by repeatedly assigning them to nearby centroids and updating those centroids.
+**How it works.** Build a grid comparing each point in one sequence with each point in the other. Dynamic programming finds a low-cost path through allowed neighboring cells. Here, local cost is squared pain difference, and `D(i,j) = localCost + min(D(i-1,j), D(i,j-1), D(i-1,j-1))`. The final distance is the square root of accumulated cost. A band limits how far alignment can stray. This distance is **not divided by path length**. [DTW reference](https://dtaidistance.readthedocs.io/en/latest/usage/dtw.html)
 
-**Intended mathematics.** Minimize within-cluster squared Euclidean distance. Initialization, scaling, and K matter. Elbow and silhouette diagnostics support comparison but do not identify a uniquely true K. [K-means reference](https://scikit-learn.org/stable/modules/clustering.html#k-means)
+**Archived implementation.** `DTWPatternMatching.execute` accepted entries or an object containing `entries/rawEntries`, built windows, filtered similarities and suppressed overlapping matches. It produced pattern groups and alignment data. A truthiness fallback could replace score zero with 50. The overlap-suppression IoU threshold of 0.01 was unusually strict and should not become an unexplained hidden rule.
 
-**Archived implementation.** KMeansPCAClusteringAnalysis aggregates mixed features, searches possible K values using elbow/silhouette-style criteria, and returns PCA visualization data. Its metadata defaults to searching up to eight clusters and includes minimum-size safeguards.
+**Our sliding-window approach.** A **window** is a short, contiguous slice of the timeline: here, seven consecutive calendar days with pain recorded. The search takes one seven-day slice, compares it with later seven-day slices that do not overlap it, then moves the starting position forward by three rows and repeats. Both slices are checked for consecutive dates, so the search skips candidates with missing days rather than squeezing a gap into a week. This is a sampled search across possible weeks, not every possible daily starting position.
 
-**Outputs.** Assignments, centroids, selected K, within-group metrics, selection diagnostics, and projected points.
+**Current demo and outputs.** `runDtw` scores each valid pair using DTW with band 2, allowing up to two positions of local time displacement in these equal-length windows. It ranks pairs by increasing distance and keeps the **best five matches**. The output includes both start dates, the two sets of pain values, the distance and a full alignment path, plus how many pairs were compared. The path shows which points were paired; lower distance means less mismatch under this specific rule. Two reported matches may reuse a window—the non-overlap rule applies to the two windows inside a pair, not to the whole list of results.
 
-**Why included.** Compare it with DBSCAN: K-means favors compact centroid groups and assigns points, whereas DBSCAN can reject noise.
+**How to read it.** A match means “these two simulated weeks have similar shapes after the allowed time alignment.” It does not mean the weeks are correlated in the statistical sense, share a cause or predict a recurrence. Searching many windows creates opportunities for chance resemblance. Test short exact paths and deliberately stretched/compressed patterns; do not compare different lengths without stating the normalization rule.
 
-**Limitations.** Cluster labels can permute between runs. Verify pairwise membership or align labels before comparison. A good-looking two-dimensional projection does not prove that full-space groups are meaningful.
+### 5.10 PCA followed by LASSO: predicting from compressed inputs
 
-### 5.9 Dynamic time warping pattern matching
+**What it is and where it is used.** This combines two familiar steps: PCA compresses related columns, then LASSO predicts a number from the compressed coordinates. It is useful for exploring whether a smaller representation helps a sparse predictor.
 
-**What it does.** Aligns sequences that contain similar shapes at different speeds. It can detect a repeated motif even when one occurrence is stretched in time.
+**How it works.** Split data by time; fit scaling and PCA on training inputs; project training and held-out inputs with that fitted transform; then fit LASSO on the training component scores. Evaluate against the held-out answers. In the current demo, four retained components feed a one-day-ahead pain model.
 
-**Intended mathematics.** Dynamic programming accumulates local alignment costs along a permitted path through a sequence-pair grid. Path constraints prevent extreme warping. Distance normalization must be specified before comparing windows of different length. [DTW reference](https://dtaidistance.readthedocs.io/en/latest/usage/dtw.html)
+**Archived implementation.** `PCALassoRegression.execute` extracted trigger/lag inputs, optionally applied PCA and called `trainLasso`. Some branches skipped PCA or returned empty guidance when useful features were unavailable. A success flag in those branches did not establish that both calculations had run.
 
-**Archived implementation.** DTWPatternMatching.execute accepts an array or a preprocessing object containing entries/rawEntries. It discovers windows, compares their score trajectories, applies similarity filtering and overlap suppression, and creates pattern-group and alignment visualization payloads. Historical code uses a truthiness fallback for scores and can replace a valid zero with 50. The source's IoU suppression threshold is unusually low; it should be a visible documented option rather than an invisible rule.
+**Current demo and outputs.** `runPcaLasso` returns fitted projection information, component coefficients, predictions and evaluation. Historical outputs also tracked whether PCA ran and why, with explanations in component and original-feature terms.
 
-**Outputs.** Matching windows, alignment paths/derived chart data, similarities, motif groups, and timeline lookup information.
+**How to read it.** A zero component coefficient removes a combined direction, not necessarily one original food indicator. To express weights in original coordinates, multiply through the PCA loadings and undo the scaling. A loading describes a component; a regression coefficient describes its contribution to a prediction. Compression can discard a small-variance direction that is highly predictive, so compare with direct LASSO rather than assuming improvement.
 
-**Why included.** It is a strong visual demonstration of sequence algorithms and computational optimization.
+### 5.11 PCA followed by ElasticNet: separate forecasts for different dates
 
-**Limitations.** Similarity is not a recurrence probability. Large searches create many opportunities for chance matches. Test exact cost/path cases and planted warped motifs, and show the chosen constraint and normalization.
+**What it is and where it is used.** This compresses inputs with PCA, then fits an ElasticNet model for each forecast horizon. It demonstrates **direct forecasting**: the seven-day model learns seven-day answers directly instead of repeatedly stepping a one-day model forward.
 
-### 5.10 PCA followed by LASSO
+**How it works.** For each horizon, pair today's inputs with the exact future day's target, make a chronological split with a gap, fit scaling/PCA only on training inputs, and fit the regression. Keep that transform with the model. The current demo retains four components and predicts simulated pain at **1, 7 and 14 days**.
 
-**What it does.** Fits sparse linear regression in a principal-component space rather than directly on every original feature.
+**Archived implementation.** `PCAElasticNet.execute` trained models described as t+0 through t+7. Its inference code queried the database again, used `currentDate` and could sample missing features. The file was `PcaElasticNet.js`, while an engine import used `PCAElasticNet.js`, creating a casing hazard on case-sensitive systems. A t+0 estimate is same-day, not a future forecast.
 
-**Archived implementation.** PCALassoRegression.execute extracts trigger/lag predictors, optionally applies PCA, then calls trainLasso on the projected matrix. Some branches skip PCA when it is inappropriate or no useful features exist. A successful empty-guidance result is not evidence that PCA and LASSO both ran.
+**Current demo and outputs.** `runPcaElasticNet` supplies dates/horizons, point predictions, component models and per-horizon evaluation. Historical outputs additionally contained sampling-based uncertainty summaries. All current input reads come from the captured demo snapshot.
 
-**Correct intended flow.** Fit scaling/PCA on training X, project training and test rows using the same transform, fit LASSO on training component scores, and evaluate on the held-out target. Removing components can discard a low-variance predictive direction; compare against direct LASSO.
+**How to read it.** Inspect each horizon's held-out error separately. Sampling assumed missing inputs explores those assumptions; it does not automatically create a statistically calibrated prediction interval. Compare each forecast with leaving the most recent pain value unchanged.
 
-**Outputs.** PCA usage/reason, retained components, component coefficients, fit statistics, and projected/original-feature explanation data.
+### 5.12 PCA followed by logistic LASSO: classifying compressed inputs
 
-**Why included.** Demonstrates composition of unsupervised representation learning with supervised sparse regression.
+**What it is and where it is used.** This uses PCA's summary coordinates as inputs to a yes/no classifier. It is a useful comparison with direct logistic regression when several original inputs carry similar information.
 
-**Interpretation.** A sparse component model does not necessarily select a sparse set of original foods. Original-space coefficients require multiplying through the PCA directions and reversing any scaling. Clearly distinguish a component loading from a regression coefficient.
+**How it works.** Define the binary answer, fit the scaler and PCA on training inputs, project each input with the same fitted transform, then fit logistic LASSO on training component scores. `runPcaLogistic` retains **four training-fitted components** and classifies next-day simulated pain **at least 5**.
 
-### 5.11 PCA followed by ElasticNet multi-horizon forecasting
+**Archived implementation.** `PCALogisticLasso.execute` extracted trigger inputs, usually began with `painIntensity`, created binary or specialized labels and used PCA when appropriate before fitting logistic LASSO. Some branches skipped PCA. Historical output described risk/protective factors and current-input explanations.
 
-**What it does.** Fits forecast models at multiple horizons after reducing the input space with PCA.
+**Current demo and outputs.** The direct handler returns component directions, fitted coefficients, probabilities and held-out classification results. The projection belongs to the fitted model, so held-out rows cannot silently acquire a newly fitted PCA transform.
 
-**Archived implementation.** PCAElasticNet.execute trains specialized horizon models, historically described as t+0 through t+7, using PCA and ElasticNet. It returns training details and forecasts; its predictor queries the database again for features, uses currentDate, and can use Monte Carlo sampling for missing inputs. The tracked filename is PcaElasticNet.js despite an engine import spelled PCAElasticNet.js; normalize casing during restoration.
+**How to read it.** A component combines inputs; calling it a “risk component” does not isolate a real-world cause. PCA preserves variation without looking at the target, so it can remove the very information useful for classification. Demonstrate both success and failure cases and compare the confusion matrix with the direct classifier.
 
-**Correct intended flow.** Pair each date's predictors with its explicit horizon target, keep preprocessing within the training period, fit each horizon separately, and retain the fitted transform for inference. t+0 is a same-day estimate, not a future forecast. Supply all predictor reads from the demo snapshot.
+### 5.13 Direct ElasticNet forecasting: keeping the original inputs
 
-**Outputs.** Forecast date/horizon, point predictions, optional uncertainty summaries, component models, and per-horizon sample/fit metrics.
+**What it is and where it is used.** This fits separate numeric forecasts without first compressing the inputs. It is useful for comparing direct-feature prediction with PCA forecasting and for seeing which standardized inputs the model uses.
 
-**Why included.** Demonstrates dimension reduction plus direct horizon modeling.
+**How it works.** Create exact-calendar training pairs for each horizon, standardize using only its training period, then fit one ElasticNet model per horizon. `runElasticNetForecast` predicts simulated pain at **1, 7 and 14 days**. Each prediction uses an explicit snapshot and date; a future input must be known or clearly stated as an assumption.
 
-**Limitations.** Sampling assumed missing features explores assumptions; it does not automatically produce a calibrated predictive interval. Evaluate each horizon against a persistence baseline and clearly label t+0.
+**Archived implementation.** `ElasticNetForecasting.execute` used temporal feature-linkage tables, normalization and direct ElasticNet models. Its wrapper required 20 entries, defaulted to `healthScore`, read symptom/food/medication rows again during inference and could sample missing features. Dates could come from `currentDate` or the clock. The 20-entry rule was wrapper behavior, not a universal adequacy threshold.
 
-### 5.12 PCA followed by logistic LASSO
+**Current demo and outputs.** The handler shows forecast dates, values, coefficient information and evaluation for each horizon. Historical output also included same-day estimates and optional uncertainty data. The direct model remains fitted to its training period when producing its current forecast.
 
-**What it does.** Learns a binary classifier on component scores, illustrating dimensionality reduction before classification.
+**How to read it.** Compare the same horizons with the PCA version and a persistence baseline. More machinery does not guarantee lower error. Clamping a prediction to a reasonable range makes it bounded, not accurate. Future personal logs must never be fetched as if they had been available when a prediction was made.
 
-**Archived implementation.** PCALogisticLasso.execute extracts trigger predictors, defaults to painIntensity, creates binary or specialized classification labels, applies PCA when appropriate, and fits logistic LASSO. It returns risk/protective factors and current-input classification explanations, with fallback branches where PCA is skipped.
+### 5.14 The historical “flare” workflow: defining the yes-or-no question precisely
 
-**Correct intended flow.** Define the label first, fit the scaler/PCA only on training predictors, project held-out rows, and report held-out classification results. Record whether PCA actually ran.
+**What it is and where it is used.** A future-event classifier asks whether a defined rule will be satisfied at a later date or within an interval. It demonstrates how changing the target definition changes what a model learns. The word “flare” is preserved as historical context; the current target is explicitly simulated.
 
-**Outputs.** Component directions, logistic coefficients, class probabilities, factor/explanation payloads, and fit metrics.
+**Archived implementation.** `FlarePredictionLogisticLasso.execute` fitted direct logistic-LASSO models for 3-, 7- and 14-day windows, using a default rule of `compositeScore > 5`. Latest module metadata explicitly said **no PCA**, despite stale engine text claiming PCA. Inference used normalized features, database lookups and missing-feature sampling.
 
-**Why included.** Compare direct classification with a compressed representation on correlated synthetic inputs.
+**Current demo and outputs.** `runFlareWindows` asks whether simulated pain is **at least 5 at the exact 3-, 7- or 14-day endpoint**. It uses **four training-fitted PCA components** before logistic fitting. It does not ask whether any event occurred anywhere inside those intervals. It shows endpoint labels, probabilities, projection/model details and held-out classification results. Both the PCA use and endpoint rule are deliberate differences from the archive.
 
-**Limitations.** A “risk component” is a mathematical direction, not an isolated food or medication effect. Retaining maximum variance can erase useful discrimination. Unsupervised PCA is not optimized for the classification label; demonstrate both improvement and failure cases rather than promising automatic benefit.
+**How to evaluate it.** Exclude unavailable future endpoints. For a true interval label, exclude incomplete future intervals. Neither the answer itself nor later information can enter the inputs. Class frequencies can differ by horizon, so inspect each model separately.
 
-### 5.13 Direct ElasticNet forecasting
+**Confirmed historical issue.** The old trainer fitted on `normalizedX/y` and then calculated accuracy/AUC on those same rows at lines 907–921. Those are training scores, not evidence of predicting unseen examples. The old threshold was not a validated Crohn's outcome. Current probability labels must keep the exact simulated rule visible.
 
-**What it does.** Forecasts future numeric targets using current/lagged inputs, without PCA.
+### 5.15 Autoregressive forecasting: letting earlier values predict later ones
 
-**Archived implementation.** ElasticNetForecasting.execute uses temporal feature-linkage matrices, normalization parameters and direct ElasticNet models. It requires at least 20 entries at its wrapper, queries symptom/food/medication rows during inference, and can sample missing feature values. It defaults to healthScore and anchors prediction using currentDate or the wall clock.
+**What it is and where it is used.** An autoregressive model predicts a time series from earlier values of that series. It is used to demonstrate repeating patterns, persistence and recursive forecasting. Think of using recent parts of a curve to extend it one step, then using that extension to take the next step.
 
-**Correct intended flow.** Create explicit calendar-aligned horizon samples, train regularized linear models, and pass an immutable feature snapshot plus asOfDate. Future exposure features must either be known by design or be stated assumptions; they cannot be fetched from unavailable future personal logs.
+**How it works here.** `runAutoregressive` uses pain lags **1, 2, 3 and 7**, a trend and weekly sine/cosine terms in an ElasticNet regression. After reporting holdout results, it refits on all available observations and recursively predicts **14 days**. A predicted value becomes an input to later steps.
 
-**Outputs.** Forecast sequence, current/same-day estimate where applicable, coefficient tables, horizon training summaries, and optional uncertainty data.
+**Why the old ARIMA name needs care.** Full ARIMA(p,d,q) includes autoregression, differencing and moving-average error terms. Seasonal ARIMA adds seasonal orders. The archive's name did not establish all those operations; its actual feature model was described as “AR(3) with weekly seasonality.” [ARIMA model specification](https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html)
 
-**Why included.** Serves as the direct-feature comparison for PCAElasticNet and shows the cost of compressing predictors.
+**Archived implementation and outputs.** `ArimaForecasting.execute` used lags 1/2/3/7 plus trend, bridged missing time to today with predictions and then extended the series. It returned history, coefficients, forecasts and training errors. Its plotted ranges were heuristic multiples of past standard deviation; some narrowed with horizon. They were not validated prediction intervals.
 
-**Limitations.** More model machinery need not beat the last observed value. Track held-out errors by horizon and handle clamping explicitly; a bounded output is not evidence of accuracy.
+**How to read it.** Current holdout metrics test **one-step predictions using observed lag inputs**. They do not measure accuracy of the entire recursively predicted 14-day path. Recursive errors can compound. Label this demonstration “Autoregressive forecast”; a true ARIMA model would be a separately implemented variant.
 
-### 5.14 Windowed “flare” logistic LASSO
+### 5.16 Trigger comparisons: a transparent difference between two averages
 
-**What it does.** Demonstrates classification of an event in a selected future interval rather than predicting a continuous number.
+**What it is and where it is used.** This compares an outcome after dates with a recorded exposure against dates without that exposure. It is a descriptive analysis, useful as a simple benchmark before interpreting a complicated model.
 
-**Archived implementation.** FlarePredictionLogisticLasso.execute trains direct logistic-LASSO models for 3-, 7-, and 14-day windows. The latest metadata explicitly says it does **not** use PCA, despite stale engine prose describing PCA. Its default simulated event definition is compositeScore greater than 5. It uses normalized historical features, database lookups, and missing-feature sampling.
+**How it works.** Define the exposure, delay and comparison dates, align calendar endpoints, then calculate `difference = mean(outcome after exposure) - mean(outcome after comparison)`. Count distinct dates rather than repeated meals on one date. Show both groups' sizes; a difference supported by few examples is fragile.
 
-**Correct intended flow.** Define whether the label means an event at t+h, any event in the next h days, or another interval statistic. Preserve that definition in metadata. Exclude incomplete future windows and prevent the target or post-outcome variables from entering the predictors. Different window lengths have different prevalences.
+**Archived implementation.** `TriggerAnalysis.execute` sorted entries, created date lookups, calculated baseline and delayed differences, and ranked exposures. Defaults required three occurrences and examined up to three effect days. These were demonstration settings, not general statistical standards.
 
-**Outputs.** Window lengths, class probabilities, coefficients, training/evaluation summaries, and model explanations.
+**Current demo and outputs.** `runTriggerAnalysis` compares next-day simulated pain after dairy, spicy and caffeine indicators and returns the difference between the two means plus both sample counts. The individual means are calculated internally but are not separate current output fields. The known generator makes this useful for checking whether the next-day alignment is correct. Historical output also supplied baseline values and explanatory charts.
 
-**Why included.** A rich demo of temporal labels, sparse classification, and multiple prediction horizons.
+**How to read it.** A positive difference says these simulated rows had higher subsequent pain on average. It does not show that changing a real exposure would change pain. Other exposures may coincide, logging may be selective, and missing records may change the comparison. The seeded fixture is complete; “not logged” in another dataset must not silently become “not consumed.”
 
-**Confirmed caveat.** The archived trainer fits on normalizedX/y and then computes accuracy/AUC on those same rows at lines 907–921. Those are training metrics. The arbitrary composite threshold has not been validated as a Crohn's outcome. The in-app demo must say “simulated event probability,” with the exact rule shown.
+### 5.17 Scenario generation: choosing inputs to experiment with
 
-### 5.15 Historically named ARIMA forecasting
+**What it is and where it is used.** Scenario generation prepares hypothetical input changes for a model. It is workflow logic rather than a separate learning algorithm. It is useful for interactive explanations: what would this model output if one simulated input were different?
 
-**What it does in the archive.** Builds lag1, lag2, lag3, lag7 and a trend feature, then fits ElasticNet and recursively forecasts a score series. It is an autoregressive regression demonstration with a weekly lag.
+**How it works.** Calculate relevant associations, select inputs to explore, copy the original input vector and change selected fields within the simulated domain. Keep a record of what changed and why. Generating a scenario does not itself produce a prediction; the executor does that next.
 
-**What ARIMA normally means.** An ARIMA(p,d,q) model includes autoregressive terms, differencing, and moving-average error terms. Seasonal extensions add seasonal orders. The name should reflect which of those components are actually implemented. [ARIMA model specification](https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html)
+**Archived implementation.** `ScenarioGenerator.execute` expected `correlationResults` and optionally `naiveBayesResults`. It created individual and combined changes with names and metadata. Missing prerequisites could produce a success response containing guidance but no scenarios.
 
-**Archived implementation.** ArimaForecasting.execute trains on rows after the first seven lags, bridges a gap to today by prediction, and extends the series recursively. It returns a model type of “AR(3) with weekly seasonality.” Its plotted ranges use heuristic multiples of historical standard deviation; they are not validated prediction intervals. Some ranges even narrow with horizon.
+**Current demo and outputs.** `runScenarioGeneration` directly calculates the prerequisites and chooses the **three largest absolute feature correlations** for low/high comparisons. It returns named scenarios and changed inputs. These should be understood as inspection candidates, not ranked intervention advice.
 
-**Outputs.** Historical series, AR coefficients, forecasts, training errors, and heuristic range/confidence labels.
+**How to read it.** An input can be strongly associated with an answer without causing it. A scenario can also fall outside patterns present in training. Keep changes feasible and their assumptions visible. Explicit prerequisite calls and substantive scenario output are clearer than an empty apparent success.
 
-**Why included.** Demonstrates autoregression, recursive forecasting and error propagation.
+### 5.18 Scenario execution: asking a fitted model “what if?”
 
-**Restoration choice.** Label the preserved behavior “Autoregressive forecast.” A true ARIMA implementation can be added as a distinct future variant; do not rename an AR implementation to claim missing math. Use an explicit demo date and held-out rolling evaluation.
+**What it is and where it is used.** The executor evaluates the scenarios prepared above. It compares one model's prediction for the original input with its prediction for a modified input. It is useful for explaining the function the model has learned.
 
-### 5.16 Trigger effect analysis
+**How it works.** Freeze the fitted model, feature order and preprocessing. Compute the baseline output; change specified inputs while holding the others fixed; compute the modified output. The result is `modelDifference = prediction(modifiedInput) - prediction(originalInput)`. Refitting between the two calculations would make this a different comparison.
 
-**What it does.** Compares a numeric outcome around occurrences of a tagged exposure, including selected delays.
+**Archived implementation.** `ScenarioExecutor.execute` accepted both an individual scenario/current-features API and an `algorithmResults` bundle API. They produced different layouts: some nested data and some top-level scenarios/recommendations. Historical text described interventions or improvements more strongly than this calculation supports.
 
-**Archived implementation.** TriggerAnalysis.execute sorts entries chronologically, builds a date lookup, computes baseline statistics and exposure-associated differences, and orders trigger results. Defaults include three occurrences and up to three effect days.
+**Current demo and outputs.** `runScenarioExecution` fits a direct model, copies the latest input vector, and creates low/high versions for each selected input while holding other fields fixed. It returns the low prediction, high prediction and `highPrediction - lowPrediction`, along with the changed feature and its settings. It does not currently return a separate prediction for the unmodified input. The archived API included baseline/modified comparisons. With simulated data, the current low/high response can be compared with the known generator's behavior.
 
-**Correct intended flow.** Define the exposure, comparison group, delay and complete-case rules. Count distinct dates rather than duplicate meal rows. Show both exposed and comparison sample sizes. A descriptive mean difference is an observation, not an estimated intervention effect without stronger assumptions.
+**How to read it.** This is a change in model output, not a measured treatment effect. Changing one input while freezing correlated inputs can create a case that never occurs in reality. The demonstration explains a fitted model; it does not establish what would happen to a person.
 
-**Outputs.** Trigger names, exposure counts, lagged mean differences, baseline values, and explanatory charts/tables.
+## 6. Making results easy to inspect
 
-**Why included.** Gives users and reviewers an understandable benchmark alongside complex fitted models. Synthetic planted effects can show whether lag alignment is correct.
+The old engine used several output layouts: nested data, top-level fields, Maps, functions and successful empty fallbacks. A small common result structure would make it easier to see what actually ran, which dataset was used and how the calculation was evaluated, while retaining each algorithm's useful details.
 
-**Limitations.** Confounding, selective logging, coincident exposures and missing data can dominate the observed difference. Do not suggest changing medication based on these comparisons. “Not logged” is not “not consumed”; demo fixtures should state completeness explicitly.
-
-### 5.17 Scenario generation
-
-**What it does.** Builds hypothetical modifications to an input vector, usually from previously calculated association/model rankings. It is workflow logic, not an independent learning algorithm.
-
-**Archived implementation.** ScenarioGenerator.execute expects correlationResults and optionally naiveBayesResults in configuration. It constructs single-input and combined-change scenarios, returning names, changes, available triggers, and metadata. If prerequisite results are absent, it can return success with guidance and no scenarios.
-
-**Correct intended flow.** Run prerequisite calculations directly, pass their outputs explicitly, and generate feasible modifications within the known simulated feature domain. Record the original vector, changed fields, rationale, and whether a scenario is inside the training range.
-
-**Outputs.** A structured scenario list; it need not contain predictions until a separate executor evaluates it.
-
-**Why included.** Demonstrates composition, model interpretation and interactive exploration.
-
-**Limitations.** Correlation can suggest a candidate to inspect but does not establish that editing the corresponding real-world factor changes an outcome. In Demo Mode call these “input simulations,” avoid real medication directives, and require visible prerequisites rather than empty apparent success.
-
-### 5.18 Scenario execution
-
-**What it does.** Compares a fitted model's baseline prediction with its prediction after a specified input modification.
-
-**Archived implementation.** ScenarioExecutor.execute supports both a scenario/currentFeatures API and a broader algorithmResults API that generates/evaluates scenario bundles. Result layouts differ: some data is nested, while the bundle path returns scenarios/recommendations at top level. Historical prose uses intervention/improvement language.
-
-**Correct intended flow.** Freeze the fitted model and preprocessing, construct baseline and modified vectors with identical feature order, and calculate their prediction difference. Refit only when explicitly requested, not silently between the two comparisons.
-
-**Outputs.** Baseline prediction, modified prediction, difference, changed fields, and model/domain warnings.
-
-**Why included.** Makes model behavior tangible and shows how feature effects interact within a learned function.
-
-**Limitations.** This computes a change in model output, not a causal treatment effect. Changing a feature while holding everything correlated with it fixed may create an impossible case. On the synthetic system, compare the model's response with the known generator's response; that tests the simulation without making a real-health claim.
-
-## 6. Shared output contract
-
-The old engine mixes nested data, top-level payloads, Maps, model functions, heuristic confidence labels, and successful empty fallback results. The replacement should expose a small serializable result shape while keeping algorithm-specific detail.
+The following is a **proposed future contract**, not the exact shape every current handler returns. Its names illustrate the information worth keeping:
 
 ~~~js
 {
@@ -365,81 +341,71 @@ The old engine mixes nested data, top-level payloads, Maps, model functions, heu
 }
 ~~~
 
-This is a proposed contract, not a promise that the current package already returns these exact fields. Accuracy, AUC, R-squared, sample coverage and convergence are different concepts and should not collapse into one “confidence” word.
+`source`, `seed` and `asOfDate` explain where the example came from. `sampleCounts` separates rows used for learning from rows used for checking. `metrics` separates training performance from held-out performance. `diagnostics` would explain whether fitting settled and which warnings remain.
 
-## 7. Five earlier variants
+Avoid one vague “confidence” number. Accuracy describes correct classes, R-squared describes regression performance relative to a mean, coverage describes available data, and convergence describes fitting behavior. None can substitute for the others. The current kernels do not yet provide all the diagnostics shown in this illustrative object.
 
-These are recovered conceptually from revision **51a0536**. They should remain documented and selectable where restored, even when they reuse the shared numerical routines.
+## 7. The five earlier variants
 
-### 7.1 Standalone three-day FlareLogisticLasso
+These variants are preserved in revision **51a0536**. They show additional ideas even when they share fitting routines with the main collection. Each has a callable current demonstration, but the simpler direct version does not reproduce every historical target or optimization.
 
-**Purpose.** A specialized binary classifier with a different event-labeling rule from the later 3/7/14-window workflow.
+### 7.1 Standalone three-day classifier: changing the definition of the answer
 
-**Archived implementation.** FlareLogisticLasso.execute constructs a three-day lookahead label using three tests: future compositeScore above 6, a decline relative to historical score mean/standard deviation when recent scores are high, or an absolute healthScore below 35. It then trains logistic LASSO on mixed inputs. These are historical code rules, not validated clinical definitions. The helper uses full-series statistics and truthiness score defaults; a replacement must avoid evaluation-period statistics and preserve valid zero values.
+**What it is and where it is used.** This is a specialized logistic-LASSO classifier. Its educational value is target construction: the same model family learns a different problem when you change the yes/no rule.
 
-**Inputs/outputs.** Dated canonical features and an explicitly complete future interval; event probabilities, sparse coefficients and classification details.
+**Archived implementation.** `FlareLogisticLasso.execute` looked three days ahead and used three tests: future `compositeScore > 6`; a decline relative to historical health-score mean/standard deviation when recent scores were high; or future `healthScore < 35`. The decline condition used recent average above 60 and future score below historical mean minus standard deviation. These were code rules, not clinical definitions. Full-series summary statistics leaked evaluation-period information into the rule, and truthiness defaults risked losing valid zeros.
 
-**Why preserve it.** It demonstrates how changing target construction changes the learning problem. The UI can compare its synthetic rule with the later composite-threshold rule.
+**Current demo and outputs.** `runFlareThreeDay` is deliberately simpler: direct-feature logistic LASSO predicts whether simulated pain is **at least 5 at the three-day endpoint**. It does not use the old three-part target and does not use PCA. It returns probabilities, coefficients and classification evaluation from exact-date pairs.
 
-**Validation.** Test label creation separately from model fitting, exclude incomplete future intervals, and test each trigger condition with a small hand-built fixture.
+**How to read and test it.** Explain a target rule before interpreting its score. Label construction needs its own tests, independently of model fitting. Restoring the original rule would require training-only historical statistics, tests for all three conditions and exclusion of incomplete future intervals. The current endpoint variant demonstrates classification without implying equivalence to those old rules.
 
-### 7.2 Optimized sliding-window DTW
+### 7.2 Optimized DTW: keeping the distance while using less memory
 
-**Purpose.** An optimization-oriented version of motif search, not a new clinical predictor.
+**What it is and where it is used.** This explores engineering tradeoffs in sequence matching. The current variant gets the same constrained DTW distance while storing fewer intermediate cells. It is useful for comparing an algorithm's mathematical answer with its memory requirements.
 
-**Archived implementation.** Instantiate OptimizedDTWSlidingWindow and call findPatterns(entries, config). The class includes window generation, lower-bound filters, downsampling, banded/rolling DTW, beam search, and cache handling. Some of these accelerate exact computation; others approximate or restrict search and can alter recall. [Author's LB_Keogh reference page](https://www.cs.ucr.edu/~eamonn/LB_Keogh.htm)
+**Archived implementation.** `OptimizedDTWSlidingWindow.findPatterns(entries, config)` included window generation, lower-bound filters, downsampling, banded/rolling DTW, beam search and caching. A lower bound can cheaply reject a candidate that cannot beat a chosen distance. Downsampling or limiting search can change which matches are found. [Author's LB_Keogh reference page](https://www.cs.ucr.edu/~eamonn/LB_Keogh.htm)
 
-**Inputs/outputs.** An explicit dated demo sequence and search configuration; candidate/matching windows, distances, and computation diagnostics.
+**Current demo and outputs.** `runOptimizedDtw` uses rolling rows to calculate the **same distance for the selected band** as full DTW. It returns distance comparisons without a full alignment path. That missing path is an intentional memory tradeoff, not failure. It does not restore the archive's lower-bound pruning, beam search or caches.
 
-**Why preserve it.** Shows algorithm engineering: memory use, pruning, and speed/accuracy tradeoffs.
+**How to read and test it.** Compare full and rolling distances on exact small cases, including unequal sequence lengths. A lower bound is valid only if it does not exceed the corresponding exact distance under matching assumptions. Distinguish exact computation, constrained computation and approximate candidate search; report candidates considered, pruned and fully compared if those optimizations are added.
 
-**Validation.** Compare each optimization with a small exact DTW reference. A valid lower bound must not exceed the matching distance under the same cost/window assumptions. Report whether search is exact, constrained or approximate. Preserve separate counts for considered, pruned and fully compared candidates.
+### 7.3 PCA/ElasticNet cascade: feeding forecasts into later forecasts
 
-### 7.3 PCA/ElasticNet symptom cascade
+**What it is and where it is used.** A cascade predicts a new state and uses that predicted state as input to the next step. It demonstrates recursive multivariable forecasting. Think of extending several linked curves together rather than extending only one.
 
-**Purpose.** Extends forecasts recursively by using predicted symptoms as later inputs.
+**Archived implementation.** `SymptomCascadeModels.trainCascadeModels(entries, rawEntries, targetVariable, normalizationParams)` fitted supporting PCA/ElasticNet symptom models. `generateCascadePredictions(cascadeModels, dayPredictions, currentSymptoms)` chained predictions beyond directly available horizons. Inputs included historical symptom vectors, fitted transformations, direct forecasts and the current state.
 
-**Archived implementation.** SymptomCascadeModels.trainCascadeModels(entries, rawEntries, targetVariable, normalizationParams) trains supporting symptom models. generateCascadePredictions(cascadeModels, dayPredictions, currentSymptoms) chains them beyond directly available horizons. It uses PCA and ElasticNet helpers.
+**Current demo and outputs.** `runPcaCascade` fits one-step models using **four training-fitted components** and predicts a state containing pain plus the six demo inputs. It then feeds its predicted state forward for a seven-step trajectory. It displays the resulting values and one-step evaluation. The six inputs are dairy, spicy, caffeine, fiber, medicationTaken and energy; they are not the archive's full symptom vector.
 
-**Inputs/outputs.** Historical symptom vectors, fitted preprocessing, direct-horizon predictions and current simulated symptoms; later-horizon symptom/score trajectories.
+**How to read and test it.** Keep observed inputs distinct from predicted inputs. A model trained on real simulated observations can behave differently when fed its own estimates. The current holdout uses observed previous states, so it tests one step, not the whole recursive trajectory. Compare multi-step errors and numerical stability on a known dynamical fixture before claiming long-horizon performance. Appended predictions do not become new training observations.
 
-**Why preserve it.** Illustrates direct versus recursive forecasting and the effect of feeding a model its own previous predictions.
+### 7.4 Scalar score cascade: displaying one part of a predicted state
 
-**Correct intended behavior.** Propagate the same feature definitions/scaling at every step, identify which inputs are observed versus simulated, and carry horizon provenance. A model trained on observed inputs can behave differently on its own predicted inputs.
+**What it is and where it is used.** Historically this continued a scalar score after another forecast sequence. It is useful for demonstrating how model outputs can be chained and how a simpler display can hide internal state.
 
-**Validation.** Compare direct and recursive models on a seeded dynamical system, evaluate errors by horizon, and test boundedness and numerical stability. Cascading does not create new observations or increase the training sample size.
+**Archived implementation.** `ArimaHealthScoreCascade.forecastHealthScores(historicalEntries, pcaPredictions, startHorizon, endHorizon)` joined history with supplied predictions, interpolated gaps and extended the series with an ARIMA-style helper or fallback. It used the wall clock and returned horizon, `healthScore`, confidence and method fields. The name alone did not establish a full ARIMA model.
 
-### 7.4 AR health-score cascade
+**Current demo and outputs.** `runScoreCascade` uses the **same recursive state-model family** as the current cascades but displays predicted pain as its scalar demo outcome. Other state fields still influence subsequent steps. It is not a separately validated health-score model and does not restore the historical HealthScoring formula or AR continuation.
 
-**Purpose.** Continues a scalar score forecast after a PCA/ElasticNet horizon sequence.
+**How to read and test it.** Supplied predictions are simulated inputs, not measured history. Distinguish filling a gap by interpolation from predicting a future value. Check horizon boundaries, continuity and absent-history errors. Current one-step holdout results do not validate the full seven-step continuation; heuristic confidence wording would need to remain explicitly heuristic.
 
-**Archived implementation.** ArimaHealthScoreCascade.forecastHealthScores(historicalEntries, pcaPredictions, startHorizon, endHorizon) combines history with supplied predictions, interpolates gaps, and extends it using an ARIMA-style helper or fallback. It anchors dates to the wall clock and returns horizon, healthScore, confidence and method fields.
+### 7.5 Symptom cascade: exposing the full simulated state
 
-**Correct intended behavior.** Treat the joined direct predictions as simulated inputs, not measured history. Inject the date, specify the actual autoregressive/differencing/error model, and distinguish interpolation from forecast. The archived name alone does not establish a full ARIMA implementation.
+**What it is and where it is used.** A multivariable cascade displays several predicted quantities together. It is useful for exploring how independent fitted outputs behave when chained and whether the resulting combinations make sense.
 
-**Why preserve it.** It demonstrates a fallback forecast chain and model-composition limitations.
+**Archived implementation.** `ArimaSymptomCascade.forecastSymptoms(symptomHistory, startHorizon, endHorizon, lastPrediction)` iterated over eight fields covering pain, bowel, blood, energy, appetite and mood. It extrapolated available series, otherwise decayed toward a baseline, and combined predictions through `HealthScoring` into a demo score.
 
-**Validation.** Verify exact horizon boundaries, continuity between direct and extended predictions, and failure behavior when history is absent. A heuristic confidence label must remain heuristic. Evaluate compounded errors rather than counting the appended predictions as new evidence.
+**Current demo and outputs.** `runSymptomCascade` exposes the current recursive state: pain and the six demo inputs. It does **not** restore those eight symptom fields, the old per-symptom AR fallbacks or their derived score. It displays a seven-step state trajectory; one-step evaluation uses observed previous states. Values are kept within the observed ranges, a stability choice rather than evidence of accuracy.
 
-### 7.5 AR symptom cascade
+**How to read and test it.** Several individually plausible predictions can form an implausible combination. Binary fields and continuous values need different interpretations; fractional predicted indicators are simulated values, not medication actions. Check ranges, types, horizon order and missing-history behavior. Compare joint trajectories with the known generator. A calculated demo score, if added, needs an explicit formula and cannot silently become a personal-health measure.
 
-**Purpose.** Forecasts each symptom separately and combines predicted symptoms into a simulated score.
+## 8. One app, with a simpler route from button to result
 
-**Archived implementation.** ArimaSymptomCascade.forecastSymptoms(symptomHistory, startHorizon, endHorizon, lastPrediction) loops over pain, bowel, blood, energy, appetite and mood fields. It uses time-series extrapolation where history exists, otherwise decay toward a baseline, then calls the historical HealthScoring helper.
+### 8.1 Call the demonstration directly
 
-**Inputs/outputs.** Per-symptom history, last simulated prediction and horizon range; symptom vectors and a derived demo score.
+The regular tracker stays in the same app. In Demo Algorithms, a button chooses a named function. That function receives a demo snapshot, prepares its inputs and targets, calls the needed numerical routines, evaluates the answer and formats the result. Scenario prerequisites are explicit function calls rather than hidden engine dependencies.
 
-**Why preserve it.** Demonstrates multivariate output composition and missing-history fallbacks.
-
-**Correct intended behavior.** Keep binary outcomes distinct from continuous values, constrain outputs according to the actual simulation domain, and state that the score is an explicit demo formula. Independent forecasts may produce jointly implausible vectors.
-
-**Validation.** Test each symptom's range/type, lack-of-history fallback, score formula and horizon ordering. Compare the simulated joint trajectory with the generator; do not interpret the derived score as a validated personal-health measure.
-
-## 8. One-app execution architecture
-
-### 8.1 Direct calls instead of the old registered engine
-
-Keep the regular tracker and place the full collection in a Demo Algorithms view. A button selects a named direct handler. That handler captures a demo snapshot, builds its required matrix/labels, calls numerical functions, and formats the result. Scenario prerequisites are ordinary explicit function calls.
+This illustrative flow shows the responsibilities; the sample function names are explanatory, not a claim about exact current export names:
 
 ~~~text
 Demo Algorithms screen
@@ -450,45 +416,51 @@ Demo Algorithms screen
   -> result + chart + explanation
 ~~~
 
-A reusable solver is appropriate; restoring a registry, algorithm coordinator, multiple persistent caches and background cleanup machinery is not required to reuse that solver. Avoid running every algorithm automatically on startup or every log write. Run on demand, reuse a captured dataset within a comparison, and only add caching after measurements establish a need.
+Reusable mathematics is useful. A registry, coordinator, several permanent caches and background cleanup machinery are not prerequisites for calling it. Running demonstrations on demand also keeps them out of startup and ordinary log saves. A comparison can reuse one captured dataset so both models see the same examples. Add caching only after measurement shows a benefit.
 
-### 8.2 Enforce demo isolation
+### 8.2 Make demo-only input a property of the code
 
-The archived ElasticNetForecasting, PCAElasticNet and FlarePredictionLogisticLasso modules query the live data layer during inference. Passing demo training rows alone does not prevent personal-data reads.
+In the archive, `ElasticNetForecasting`, `PCAElasticNet` and `FlarePredictionLogisticLasso` fetched database features again while predicting. Giving those modules demo training rows would not, by itself, prevent a later personal-data read.
 
-The new computation layer should receive its entire input and have no imports from SQLite, Supabase, React contexts or notification services. The UI-facing snapshot loader should select the demo database explicitly, rather than asking for whichever database is currently active. Capture the source revision once per request; switching modes invalidates that request's result.
+The current numerical layer receives its whole dataset and does not import SQLite, Supabase, React contexts or notification services. The loader explicitly selects the **demo database**, not whichever database happens to be active. Snapshot mode is checked, and real-mode snapshots are rejected. The UI hides this collection outside Demo Mode and invalidates work when its source changes.
 
-Use an injected random generator and asOfDate. Re-running the same fixture, seed, parameters and implementation revision should produce repeatable results within numeric tolerance. The existing randomly generated preview is useful for browsing, but is not sufficient as the only correctness test dataset.
+An explicit date and random seed make comparisons repeatable. Given the same fixture, seed, parameters and code revision, results should agree within floating-point tolerance. A random preview is useful for browsing; fixed reference fixtures are still needed to verify correctness.
 
-### 8.3 Demo scores and labels
+### 8.3 Make the simulated rules visible
 
-Many historical workflows depend on healthScore/compositeScore. Current personal tracking deliberately removed the fabricated composite status. For the demo, define synthetic scores and event labels with visible formulas, ranges and planted dependencies. Store them in the simulated snapshot, with names/provenance that distinguish them from measured symptoms.
+Historical `healthScore` and `compositeScore` fields combined observations into invented summaries. The personal tracker removed the fabricated composite status. A demonstration can still use a generated target if its formula, range and dependencies are clearly explained.
 
-Example: a simulated outcome can depend on two planted exposures, a prior-day symptom and seeded noise. The explanation should disclose this generator, so recovering that relationship demonstrates implementation capability rather than implying clinical discovery.
+The current fixture deliberately plants a next-day relationship between some simulated exposures and pain, with a repeating pattern and seeded noise. A model recovering that rule demonstrates implementation and evaluation. It is not discovering those relationships in a person's health data. Section 10 shows the generator and which inputs have no planted direct effect.
 
-### 8.4 Performance and lifecycle
+### 8.4 Keep calculations bounded and the tracker responsive
 
-Use bounded dataset/feature/window sizes and bounded optimizer iterations. Report convergence separately from successful execution. Long synchronous loops can block React Native's JavaScript thread; placing them in an async function does not move them to another thread, and racing a timeout does not stop synchronous computation.
+Limit row counts, feature counts, windows and optimizer iterations. A successful return means the routine finished; it does not prove convergence. In React Native, a long synchronous JavaScript loop can block the UI. Wrapping it in `async` or racing a timeout does not move it to another thread or interrupt it.
 
-Measure device execution. Use incremental yielding or an appropriate worker for genuinely expensive algorithms, especially all-pairs DTW. Stop/cancel obsolete work when the screen or data source changes. Results should show calculation status and allow retry without blocking app startup.
+Measure on a device before choosing a worker or incremental yielding for expensive calculations such as all-pairs DTW. Obsolete work should not display after a mode/screen change. Local calculation status and retry controls keep an algorithm error from blocking the tracker. Bounded work is helpful, but device responsiveness remains a measured release check.
 
-## 9. Validation methodology
+## 9. How to tell whether a demonstration is working
 
-### 9.1 Numerical correctness
+### 9.1 First check the mathematics on examples with known answers
 
-Use small reference cases before rich simulations: a known linear system, an analytically checkable probability, a rank-one matrix, two clusters with noise, and a short DTW grid. Assert expected numerical properties, not just object keys or success flags.
+Start small: a line with known weights, a probability calculable by hand, a rank-one matrix, separated groups with an outlier, or a tiny DTW grid. Check the expected answer or mathematical property. Testing only whether an object exists or says `success` does not establish a correct calculation.
 
-Check finite values, feature/target alignment, dimensions, reproducibility, and input immutability. Handle zero variance, one class, empty matrices, invalid parameters, missing days and duplicate dates explicitly. Compare handwritten solvers with trusted reference implementations using equivalent objectives and tolerances.
+Also check row alignment, dimensions, finite outputs, repeatability and unchanged inputs. Explicitly handle constant columns, one-class targets, empty inputs, invalid settings, missing days and duplicate dates. When comparing handwritten routines with a trusted solver, match the objective and numeric tolerance; different penalty conventions can produce different correct answers.
 
-### 9.2 Predictive evaluation
+### 9.2 Then test predictions on later examples the model did not see
 
-Use chronological training/validation/test periods for time-dependent demos. Tune parameters on validation only, and report a final held-out test once the design is chosen. Preprocessing and feature selection belong within each training fold. [Cross-validation guidance](https://scikit-learn.org/stable/modules/cross_validation.html)
+For a time-dependent demo, train on earlier rows and test on later rows. If choosing settings, use a separate validation period for those decisions and keep the final test period aside. Any scaling, PCA or feature selection belongs inside the training period of each split. [Cross-validation guidance](https://scikit-learn.org/stable/modules/cross_validation.html)
 
-For overlapping event windows, ensure a training label's future interval does not enter the held-out interval. Select an explicit date gap appropriate to label/feature overlap. Ordinary shuffled folds are not a faithful future-prediction test. [TimeSeriesSplit and gap parameter](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html)
+When labels reach into the future, leave an appropriate gap between training and test inputs so a training answer does not use the test period. Randomly shuffling daily rows can hide this overlap and the difficulty of future prediction. [TimeSeriesSplit and gap parameter](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html)
 
-Compare regression with the mean and persistence forecasts; compare classification with class-prevalence/majority baselines. Report error by horizon. A weak model should be allowed to lose to a baseline in the demo.
+Use simple competitors. A **mean baseline** always predicts the training average; **persistence** predicts that the last observed value continues. A classification baseline always chooses the common class or its frequency. Report each horizon separately. A demonstration is more informative when a model is allowed to lose to these baselines than when it must always look impressive.
 
-### 9.3 Metrics and interpretation
+### 9.3 What the metrics actually mean
+
+For regression, **MAE** is the average absolute miss in target units; **RMSE** squares errors before averaging and taking a square root, so larger misses matter more. Lower is better for both. **R-squared** compares squared error with using a mean; it can be negative when that comparison is worse. A **residual** is an observed answer minus its prediction.
+
+For classification, a **confusion matrix** counts correct and mistaken classes. **Recall** asks how many positive examples were found; **precision** asks how many positive predictions were right. ROC/PR summaries examine decision thresholds, and a **Brier score** averages squared probability error. Some metrics are undefined without both classes. A high accuracy alone can reflect a dominant class. [Model evaluation reference](https://scikit-learn.org/stable/modules/model_evaluation.html)
+
+For PCA, explained variance describes retained spread. For clustering, inertia measures within-group spread and silhouette compares separation with within-group distances. For DTW, the distance depends on cost and allowed paths. Each answers a different question:
 
 | Task | Useful recorded outputs | Avoid interpreting as |
 |---|---|---|
@@ -499,43 +471,43 @@ Compare regression with the mean and persistence forecasts; compare classificati
 | DTW | Cost, path, constraint, candidate count, retrieval against planted motifs | Recurrence probability |
 | Scenarios | Baseline/modified model predictions, input-domain checks | Causal treatment benefit |
 
-Choose metrics that match the task and class distribution; a high accuracy can merely reflect a dominant class. [Model evaluation reference](https://scikit-learn.org/stable/modules/model_evaluation.html)
+These are useful reporting choices, not a claim that every current handler returns every metric in this table. Read the actual displayed or inspected result, its target and its evaluated horizon together.
 
-### 9.4 Required integration checks
+### 9.4 Check the whole route through the app
 
-- Execute all 18 main workflows and five selected variants on deterministic fixtures through their real direct handlers.
-- Require substantive result payloads and matching visualizations; an empty fallback cannot count as a completed demonstration.
-- Verify no demo calculation reads or writes personal SQLite data, calls Supabase, changes notifications, or persists simulated values to personal logs.
-- Verify switching Demo Mode during work cannot display an old result under the new data source.
-- Verify algorithm failures produce visible local errors while the tracker remains usable.
-- Verify persistence/export/import/medication/history behavior independently; mathematical tests do not cover app feature correctness.
+- Run all 18 main workflows and five variants on deterministic data through their actual handlers.
+- Require useful values and matching displays. An empty fallback is not a completed demonstration.
+- Verify calculations do not read/write personal SQLite records, call Supabase, alter notifications or save predicted values as personal logs.
+- Switch modes during work and verify an older result cannot appear as a result for the new source.
+- Force an algorithm error and check that its error is visible while the tracker remains usable.
+- Test history, medication, persistence, exports and restores separately. Correct mathematics does not prove correct app features.
 
-No runtime server on port 8081 is required for this documentation or pure-function validation.
+These checks do not require a development server on port 8081. Pure-function, mocked UI and SQLite integration tests exercise their own boundaries.
 
-### 9.5 Historical claims that need correction
+### 9.5 Read historical test reports as historical records
 
-The archived FINAL_TEST_REPORT and TEST_COVERAGE_REPORT contain inconsistent historical pass totals and coverage claims. The archived algorithms-integration test mainly checks imports, and one test replaces ElasticNet execution with a mock. These files are development records, not proof of current end-to-end correctness.
+Archived `FINAL_TEST_REPORT` and `TEST_COVERAGE_REPORT` files contain inconsistent totals and coverage claims. The old algorithms-integration test mostly checked imports, and one test mocked ElasticNet execution. That is useful development history, but it is not current proof that all algorithms actually run.
 
-The old flare trainer scores the training rows. The old AR range heuristic is not a validated interval. Metadata thresholds vary across wrapper and internal branches. Small minimum-N settings were product convenience rules, not universally defensible statistical cutoffs. Restore useful numerical work, and replace misleading claims with the actual verified evidence.
+The old flare model scored its training rows; the old autoregressive ranges were heuristics. Minimum sample settings also varied between metadata and code. A tiny minimum might keep a demo button usable, but it is not a universal statistical guarantee. Preserve the numerical work and describe exactly what current tests have established.
 
-## 10. Current direct implementation mapping and release record
+## 10. What the current implementation does
 
-### 10.1 Files and execution route
+### 10.1 Files and responsibilities
 
-The new source comprises:
+The source now separates inputs, mathematics, workflow steps and presentation:
 
-- **demoAlgorithms/math.js:** seeded random generator, standardization, Pearson correlation, Jacobi PCA, coordinate-descent regression, proximal logistic regression, Bernoulli/Gaussian Naive Bayes, seeded K-means, DBSCAN, and banded full/rolling-memory DTW.
-- **demoAlgorithms/dataset.js:** immutable explicit-demo snapshots, a reproducible coursework generator, and date-aligned supervised pairs.
-- **demoAlgorithms/loadDemoSnapshot.js:** reads the demo database explicitly, then adapts its logs. It does not use the active/personal database accessor.
-- **demoAlgorithms/seedDemoLogs.js:** transactionally replaces the demo database's records with 150 recent days derived from the same seeded coursework fixture, including complete simulated exposures, pain, energy and taken/skipped medication records.
-- **demoAlgorithms/workflows.js:** 23 direct handlers, with shared preparation/evaluation helpers rather than an engine lifecycle.
-- **components/analytics/DemoAlgorithmsPanel.js:** a fixed menu of direct handler calls, result rendering, PCA/cluster/series plots and complete-result inspection. It returns no UI outside Demo Mode.
+- **`demoAlgorithms/math.js`:** reusable calculations—seeded randomness, standardization, Pearson correlation, Jacobi PCA, coordinate-descent regression, proximal logistic regression, Bernoulli/Gaussian Naive Bayes, K-means, DBSCAN and full/rolling DTW.
+- **`demoAlgorithms/dataset.js`:** makes immutable, explicitly demo-only snapshots; generates reproducible coursework data; and aligns input dates with exact target dates.
+- **`demoAlgorithms/loadDemoSnapshot.js`:** reads the demo database explicitly and adapts its logs. It does not ask for the active or personal database.
+- **`demoAlgorithms/seedDemoLogs.js`:** replaces demo records atomically with 150 recent days from the coursework fixture, including simulated exposures, pain, energy and medication taken/skipped logs.
+- **`demoAlgorithms/workflows.js`:** the 23 named direct handlers, with shared preparation and evaluation helpers.
+- **`components/analytics/DemoAlgorithmsPanel.js`:** the fixed menu, results, plots and full-result inspection. It renders no UI outside Demo Mode.
 
-Source review establishes these files and paths exist. The focused test evidence below additionally exercises the numerical/workflow paths and production SQL. Neither replaces device testing or release-build validation.
+Source inspection verifies these responsibilities, and the tests below exercise actual numerical paths, UI choices and production SQL. They do not substitute for a native device or signed release build.
 
-### 10.2 Handler map
+### 10.2 Which function runs each demonstration
 
-All handler names below are exports of **demoAlgorithms/workflows.js**.
+All names in the middle column are exports of **`demoAlgorithms/workflows.js`**. This table connects the explanations above to the current code:
 
 | Documented workflow/variant | Direct handler | New behavior |
 |---|---|---|
@@ -563,75 +535,88 @@ All handler names below are exports of **demoAlgorithms/workflows.js**.
 | Demo score cascade | runScoreCascade | Same recursive state family, displaying pain as the scalar demo outcome |
 | Symptom cascade | runSymptomCascade | Recursive pain-plus-feature state models |
 
-### 10.3 Deliberate differences from the coursework archive
+### 10.3 Changes from the original coursework, explained plainly
 
-The new implementation retains the algorithm families and demonstration entrypoints while reducing feature count, hidden defaults, infrastructure and medical-sounding outputs. That is different from reproducing every historical target/optimization:
+The simpler package keeps the families and all 23 menu entries while reducing hidden defaults and dependencies. The differences matter when describing what has been restored:
 
-1. **Targets:** personal pain is never read by the algorithms. The seeded demo uses simulated pain; the optional current-demo-log loader uses demo pain. Most new regressors predict that outcome instead of historical healthScore/compositeScore formulas.
-2. **Endpoint versus window events:** the 3/7/14-day classifier checks pain at t+h. It does not label “any event within the next h days.” The standalone three-day handler uses the same endpoint definition rather than the earlier three-tier rule. These are new transparent target definitions.
-3. **PCA event classification:** the current multi-horizon event handler applies PCA, unlike the latest archived direct-no-PCA flare workflow. Its output includes projection information. This is a named demonstration variant, not historical parity.
-4. **Forecast horizons:** direct and PCA numeric forecasts use 1/7/14 days, rather than the archive's full same-day through seven-day sequence. Their current prediction is produced by the model fitted to the training period; the AR workflow separately refits after reporting its holdout evaluation.
-5. **Clustering:** the new DBSCAN uses projected Euclidean geometry instead of the archive's mixed-feature Gower distance and score bins. New K-means uses a fixed K of three instead of searching K with elbow/silhouette heuristics.
-6. **DTW:** the new optimized variant demonstrates rolling-memory exact distance for the selected band. It does not restore every historical beam-search, lower-bound-pruning or cache optimization. Its empty path reflects the memory choice, not a failed distance calculation.
-7. **Cascades:** the new models predict a state consisting of pain and six demo inputs. They do not restore the original eight-symptom vector or HealthScoring composition. The score-only variant hides the other predicted state fields; it is not a separate clinical score model.
-8. **Naive Bayes:** the new target is binary and continuous inputs are discretized using training means. The archive used score-bin classes and binary trigger frequencies. The optional Gaussian kernel is a separate likelihood-family demonstration.
-9. **Coefficients:** the new regression kernels standardize their inputs. Displayed coefficients therefore refer to standardized feature units, or standardized PC units for projected workflows; they are not raw-unit causal effect sizes.
+1. **A visible simulated target.** Algorithms never read personal pain. They predict generated pain or pain from explicitly demo-only logs, rather than the old composite health-score formulas.
+2. **An endpoint is not a whole window.** The 3/7/14-day classifier checks pain at `t+h`, not whether anything happened between now and then. The standalone three-day classifier also uses this endpoint rule instead of its earlier three-part rule.
+3. **Four PCA components in the current multi-horizon classifier.** The latest archived flare model used direct inputs without PCA. The current `runFlareWindows` uses a training-fitted four-component projection and exposes that information. This is a deliberate variant.
+4. **Different numeric forecast horizons.** Direct and PCA forecasts use 1/7/14 days instead of the old t+0 through t+7 sequence. Their current predictions come from models fitted to the training period. The autoregressive workflow separately refits after its holdout evaluation.
+5. **Different clustering geometry.** Current DBSCAN measures ordinary Euclidean distance in the PCA plane, not mixed-feature Gower distance with score bins. Current K-means fixes three centers instead of selecting K with elbow/silhouette comparisons.
+6. **A narrower DTW optimization.** Rolling memory preserves the chosen band's distance while omitting the full path. It does not recover every old pruning, beam-search or cache feature.
+7. **A smaller cascade state.** Current cascades predict pain plus six demo inputs, not the original eight symptom fields or `HealthScoring` output. The score variant displays only pain while retaining the same internal state family.
+8. **A binary Naive Bayes task.** Current inputs become on/off at their training means, and the target is binary. The archive used score-bin classes and binary trigger frequencies. A Gaussian helper is available as a different likelihood family, not another current menu demonstration.
+9. **Weights use standardized units.** A displayed coefficient describes a one-standard-deviation input change, or a standardized component change for PCA workflows. It is not a raw-unit effect of a food or medication and is not causal.
 
-These differences should remain visible in the technical explanations. The UI's “23 workflows” count means 23 callable demonstrations, not 23 independent numerical solvers or proven clinical models.
+“23 workflows” therefore means 23 callable educational demonstrations, not 23 unrelated numerical solvers or 23 validated clinical models. The original source remains available when exact historical behavior is of interest.
 
-### 10.4 Current numerical conventions
+### 10.4 The numerical choices in the JavaScript
 
-These conventions come from the new JavaScript source, rather than an assumption that historical defaults were preserved:
+These details explain how to reproduce the current answers and compare the code with another implementation. They come from source review rather than assumptions about old defaults.
 
-- **Scaling:** each feature is centered by its training mean and divided by its population standard deviation. A zero standard deviation uses a divisor of one. The fitted mean/scale are reused for inference.
-- **Regression:** the coordinate updates correspond to one-half mean squared error plus lambda times the sum of an L1 term and one-half L2 term. The L1 fraction is l1Ratio. Defaults are lambda = 0.04 and l1Ratio = 0.5; LASSO sets l1Ratio = 1. Inputs are centered, so the intercept is mean(y). Updates stop when coefficient change is below 1e-8 or after 300 sweeps. Returned coefficients are in standardized units.
-- **Logistic regression:** mean binary cross-entropy plus an L1 penalty, using a proximal update and an unpenalized intercept. The kernel defaults to lambda = 0.02, but supervised workflow calls currently pass lambda = 0.04. It performs 400 iterations with step size 0.5 divided by feature count. Both classes are required; sigmoid inputs are bounded for numerical stability.
-- **PCA:** sample covariance after centering, Jacobi rotations, descending eigenvalue order and selected component count. Rotation termination uses an off-diagonal tolerance of 1e-10 with a bounded rotation count. A zero-variance input produces zero explained-variance fractions. The descriptive workflow standardizes its six inputs before decomposition; projected supervised workflows fit that preprocessing only on training rows.
-- **Bernoulli NB:** input j is on when it exceeds its training mean. The class prior is (classCount + 1) / (trainingCount + 2); conditional on/off probabilities use add-one smoothing with denominator classCount + 2. Inference sums log likelihoods and converts the two-class score difference to a probability.
-- **K-means:** seeded distance-weighted initialization, Euclidean assignment, centroid mean updates, at most 60 iterations. The workflow fixes K = 3. Empty clusters retain their previous center, so a constant fixture may yield fewer occupied groups than requested.
-- **DBSCAN:** Euclidean distance in the two-component projection, epsilon = 0.7, minPoints = 4, counting the point itself in its neighborhood. Noise has label -1. These are demonstration defaults, not tuned health-data parameters.
-- **DTW:** squared pointwise pain difference, recurrence using horizontal/vertical/diagonal predecessors, and a final square root of accumulated cost. This distance is not divided by path length. The workflow compares equal-length seven-day windows with band = 2. The rolling variant retains distance rows but no alignment path.
+**Scaling.** Subtract each training column's mean and divide by its **population standard deviation**. A constant column uses divisor 1, avoiding division by zero. Retain and reuse that fitted mean/scale for prediction.
 
-The current kernels bound work but do not return a comprehensive convergence diagnostic or parameter provenance record. That remains a limitation to address before interpreting a numerical result as fully validated. Source-defined iteration counts should not be confused with measured convergence.
+**LASSO/ElasticNet.** Minimize `mean((y - ŷ)²)/2 + λ[α Σ|β| + (1-α) Σβ²/2]`. Here `β` is the coefficient vector, `λ` is `lambda`, and `α` is `l1Ratio`. Defaults are `lambda = 0.04`, `l1Ratio = 0.5`; LASSO sets the ratio to 1. Centered inputs allow intercept `mean(y)`. Coordinate updates stop after coefficient changes fall below `1e-8` or after 300 complete sweeps. Returned weights use standardized units, so compare them only after matching preprocessing and objective normalization.
 
-### 10.5 Seeded fixture and current evaluation
+**Logistic LASSO.** Minimize mean binary cross-entropy plus an L1 penalty. The intercept is unpenalized. The math helper defaults to `lambda = 0.02`, while current supervised workflow calls use `0.04`. The helper performs 400 proximal-gradient iterations with step `0.5 / featureCount`. Sigmoid scores are bounded to `[-35, 35]` for numerical stability. Both classes are required. A fixed iteration count bounds work but is not a full convergence test.
 
-The coursework generator defaults to seed 42 and 150 dated observations. Six inputs are dairy, spicy, caffeine, fiber, medicationTaken and energy. Simulated pain depends on the previous row's dairy/spicy/fiber/medication inputs, a periodic term and seeded noise, then is bounded to 0–10. Caffeine and energy have no planted direct coefficient in that generator. Recovering the known mechanism on held-out simulated observations demonstrates the implementation; it does not validate those coefficients for a person.
+**PCA.** After centering, use **sample covariance**, dividing by `n-1`, then Jacobi rotations and descending eigenvalue order. Rotations stop at an off-diagonal tolerance of `1e-10` or a limit of `100 × featureCount²`. A zero-variance matrix produces zero explained-variance fractions. Descriptive PCA uses its full snapshot; supervised PCA learns from training rows only and retains four components. This differs from both the archive's power-iteration method and the population-standard-deviation convention used for initial scaling.
 
-Settings' demo generation now calls **seedDemoLogs**, replacing the former placeholder path. The seeder takes an explicit demo-database handle, clears its prior records and inserts the new fixture in one transaction. The fixture's relative days are shifted to end at the requested date, defaulting to the current local calendar date. It inserts clearly named simulated food items, one simulated medication with no configured notification times, daily taken/skipped logs, pain and energy, and a note identifying the rows as simulated examples. Every day includes a plain meal carrying the generated fiber amount; selected extra foods supply dairy/spicy/caffeine tags. Thus loading these newly generated demo logs recreates complete input features rather than relying on absent-log defaults. This is a simulation and does not infer values for personal logs.
+**Bernoulli Naive Bayes.** Input `j` is on when it **exceeds its training mean**. For class count `c` among `n` training rows, the smoothed prior is `(c+1)/(n+2)`. On/off likelihoods add one to their counts and use denominator `c+2`. Inference adds log likelihoods and maps the difference between the two class scores to a probability. The mean thresholds travel with the fitted model.
 
-The snapshot limits calculations to the latest 180 rows. Supervised pairing requires exact calendar endpoints. Most supervised workflows use an 80/20 chronological holdout with a horizon-sized excluded gap and fit preprocessing on training rows. The PCA-only/cluster workflows are descriptive and use their full supplied feature snapshot.
+**K-means.** Starting centers are seeded and distance-weighted. Assign by Euclidean distance, move centers to group means, and repeat for at most 60 iterations. The workflow uses `K = 3`; empty groups keep their previous center. Three requested centers do not guarantee three occupied groups on constant data.
 
-AR and cascade holdout metrics evaluate **one-step predictions using observed lag/state inputs**. Their later recursive forecasts compound predicted inputs. Those metrics must not be presented as measured accuracy of the entire 7- or 14-step recursive trajectory. Scenario comparisons are model behavior, not separately validated intervention effects.
+**DBSCAN.** Use Euclidean distance in two PCA coordinates, `epsilon = 0.7` and `minPoints = 4`, including the point itself. Noise is `-1`. These are demonstration settings, not tuned health-data parameters.
 
-**Current-demo-log limitation:** the loader and snapshot adapter currently default unrecorded feature values to zero. This treats missing exposures/energy as values for demonstration; it does not establish absence. Seeded coursework data is complete by construction. Before interpreting current demo logs, disclose or replace this default with completeness/missingness rules.
+**DTW.** Use squared point differences, the three-predecessor recurrence in section 5.9, and the square root of final cost. Do **not** divide by path length. Current windows are seven days with band 2; rolling memory keeps distance rows without the full alignment path. For equal settings, full and rolling kernels should agree on distance even though their returned paths differ.
 
-### 10.6 Verification record
+The routines bound work but do not yet return a comprehensive convergence and parameter-provenance record. This is a real limitation: a finite answer after a fixed number of updates should not be described as fully optimized without further diagnostics.
 
-The implementation task reports this focused command passing on October 6, 2026:
+### 10.5 Where the demo data comes from and how it is evaluated
+
+The generator defaults to **seed 42 and 150 days**. The six inputs are dairy, spicy, caffeine, fiber, medicationTaken and energy. Its simulated pain rule is:
+
+`pain[i] = clamp(3 + 2 × dairy[i-1] + 1.4 × spicy[i-1] - 0.6 × fiber[i-1] - 0.8 × medicationTaken[i-1] + sin(i × π/7) + (random - 0.5) × 0.4, 0, 10)`
+
+`clamp` keeps the number between 0 and 10. On the first generated day, when no prior day exists, the generator uses that day's inputs as its starting values. Thereafter the prior-day inputs create a deliberately learnable next-day relationship. The sine term adds a repeating pattern, and seeded noise makes it imperfect. Caffeine and energy have no planted direct coefficient. These are **simulation design choices**, not estimates about a person. Finding the known rule in held-out simulation is evidence that a model can work on this designed system.
+
+Settings now calls **`seedDemoLogs`** rather than the old placeholder. Given an explicit demo-database handle, it clears and inserts records in one transaction. This means a failed replacement can roll back instead of leaving half a dataset. Relative fixture dates end at the requested date, defaulting to the current local calendar date.
+
+The seeder writes clearly named simulated foods, one simulated medication with no notification times, daily taken/skipped logs, pain, energy and a note marking the rows as examples. Each day has a plain meal carrying its generated fiber amount; extra foods supply selected dairy/spicy/caffeine tags. Loading these seeded logs therefore rebuilds complete features without assuming that absent logs mean zero. It does not read personal records or fill gaps in personal data.
+
+Calculations retain at most the latest **180 rows**. Supervised samples require exact calendar target dates. Most supervised workflows use an **80/20 chronological holdout**, excluding a horizon-sized number of candidate pairs before the split and fitting scaling/PCA on training rows. On the complete fixture this is a corresponding calendar gap. Missing dates can additionally remove pairs, so the current pairing rules are intentionally stricter than simply accepting the next recorded row. PCA-only and clustering demonstrations describe the supplied dataset rather than predicting future answers, so they can use the whole snapshot.
+
+The AR workflow and cascades report **one-step holdout errors with observed lag/state inputs**. Their later steps use their own predictions, a harder problem whose errors can accumulate. Those scores do not measure the complete seven- or fourteen-step forecast. Scenario differences likewise describe model behavior, not independently measured intervention outcomes.
+
+**Current-demo-log limitation:** the adapter fills unrecorded features—including exposures and energy—with zero. That is an imputation assumption, not proof of absence. Seeded coursework data is complete by construction; other demo logs need a visible completeness policy before their patterns are interpreted. Missing pain remains missing rather than becoming zero.
+
+### 10.6 What has actually been verified
+
+This focused command passed on October 6, 2026:
 
 ~~~sh
 npx jest __tests__/database.integration.test.js __tests__/demoAlgorithms.test.js --runInBand --silent
 ~~~
 
-**Result: 41 tests passed, two suites passed.** The test sources were reviewed for the following coverage:
+**Result: 41 tests passed in two suites.** Source review confirms the checks below exercise actual behavior rather than just imports:
 
-- **PCA:** known rank-one eigenvalue and direction, unit/orthogonal component vectors, explained variance and reuse of a fitted projection.
-- **Regression/classification:** a known affine regression, sparse removal of an irrelevant constant feature, binary class separation, one-class rejection, and finite smoothed Bernoulli probabilities for unseen patterns.
-- **Clustering/DTW:** separated groups for K-means and DBSCAN, explicit DBSCAN noise, exact full-versus-rolling DTW distance agreement for unequal sequences, and full-path endpoint assertions.
-- **All 23 direct handlers:** actual deterministic execution, finite numeric outputs, substantive array payloads, rejection of explicit real-mode snapshots and rejection of empty demo snapshots. This checks the direct calculations; it does not count an import or mocked result as execution.
-- **Temporal preparation:** missing calendar days/targets do not silently become complete supervised pairs. Perturbing held-out targets leaves fitted coefficients and PCA unchanged for tested regression workflows while changing held-out error.
-- **Seeded behavior:** the direct ElasticNet demonstration beats a constant-mean baseline on the known complete simulated fixture; snapshots remain bounded/immutable, and missing pain stays missing.
-- **Production SQL with in-memory SQLite:** foreign keys/orphan behavior, zero/null and partial symptom updates, concurrent saves, optional/legacy medication fields, active toggles and deletion, explicit demo loading/wiping, food-only analytics and explicit cache mode.
+- **PCA:** a known rank-one eigenvalue/direction, unit and orthogonal directions, explained variance, and reuse of a fitted projection.
+- **Regression and classification:** a known affine relationship, removal of an irrelevant constant input, binary class separation, rejection of one-class training, and finite smoothed Bernoulli probabilities for unseen patterns.
+- **Clustering and DTW:** separated groups, explicit noise, full-versus-rolling distance agreement on unequal sequences, and full-path endpoints.
+- **All 23 handlers:** deterministic execution with finite numbers and substantive arrays; explicit real-mode and empty demo snapshots are rejected. No import-only or mocked return counts as execution.
+- **Time alignment and leakage:** missing days/targets cannot become fabricated supervised pairs. Changing held-out targets changes their error but leaves fitted regression coefficients and PCA unchanged in the tested workflows.
+- **The planted system:** direct ElasticNet beats a constant-mean baseline on the complete fixture. Snapshots stay bounded and immutable; missing pain stays missing.
+- **Production SQL in in-memory SQLite:** foreign keys/orphans, zero/null and partial symptom updates, concurrent saves, optional/legacy medication fields, active toggles/deletion, explicit demo loading/wiping, food-only analytics and explicit cache mode.
 
-These tests establish useful numerical and integration evidence within their fixtures. They do not establish every possible input, historical byte-for-byte parity, a medically valid target, or device performance. The focused 41-test run is not a full-suite pass.
+These are meaningful checks on stated fixtures. They do not establish every possible input, exact historical parity, clinical validity or device speed. The focused 41-test command is separate from the full-suite record.
 
-**Full-suite verification:** `npx jest --runInBand --silent` passed all **267 tests across 29 suites**, including selection/execution of every algorithm in the React Native demo panel. The transactional demo seeder recreates the complete fixture in SQLite, all 23 workflows run from those stored logs, and a simulated populate failure rolls back the replacement while preserving prior data.
+**Full app suite:** `npx jest --runInBand --silent` passed **270 tests across 29 suites**, including choosing and executing every demonstration through the React Native panel. Tests also seed the complete fixture into SQLite, run all 23 workflows from those stored logs, and force a populate failure to verify rollback preserves prior demo data.
 
-**iOS bundle verification:** `CI=1 npx expo export --platform ios --output-dir .expo/verified-ios-export` succeeds and generates a 6.9 MB Hermes bundle. This is JavaScript/assets packaging, not an Xcode archive or TestFlight/device pass. No development server was left listening on port 8081.
+**iOS JavaScript bundle:** the final offline iOS export succeeded with a 6.9 MB Hermes bundle and 88 assets. The verified export route is `CI=1 npx expo export --platform ios --output-dir .expo/verified-ios-export`. It checks JavaScript and asset packaging. It is not an Xcode archive, signed TestFlight build or native-device pass. No development server was left listening on port 8081.
 
-**Additional feature coverage:** tests cover saved local-mode auth races, cloud signup form retry behavior, auth transport deadlines, concurrent daily reminder replacement without cancelling medication reminders, AI consent with no outbound request on decline, durable account-cleanup retries, symptom selection persistence, partial CSV/food edits preserving zero and existing data, date-only/calendar handling, midnight and foreground rollover, stale date/mode responses, write/batch refresh signals, History pagination/errors, expired SQLite caches, and validated personal-only backup/restore with media remapping and rollback/failure outcomes.
+**Other app features:** tests cover saved local-mode auth races, signup retry behavior and redirect options, auth deadlines, concurrent daily-reminder replacement without cancelling medication reminders, declining AI consent with no outbound request, durable account-cleanup retries, symptom-selection persistence, partial CSV/food edits that retain zero/existing data, calendar/date-only handling, midnight and foreground rollover, stale date/mode responses, write/batch refresh signals, History pagination/errors, expired SQLite caches, and personal-only backup/restore with media remapping and rollback/failure outcomes.
 
-**Still pending:** native-device smoke testing and responsive execution measurements, reminder delivery on device, deployed account-deletion function/schema verification, Xcode/archive signing, TestFlight and final release checks. Successful tests and synthetic holdout scores do not establish clinical validity.
+**Still pending:** native-device smoke tests, responsiveness measurements, reminder delivery on device, deployed account-deletion function/schema verification, Xcode archive/signing, TestFlight and final release checks. None of the automated or simulated results establishes clinical validity.
 
-The demonstration's strongest portfolio story is the combination of implementation, visual explanation, measured evaluation and honest limitations. Keeping the full algorithm collection inside Demo Mode preserves that story while making the personal tracker more dependable.
+The portfolio value comes from seeing the algorithms run, understanding their mathematics, checking their answers and being precise about their limits. The full collection remains available in Demo Mode while the personal tracker focuses on dependable logging.

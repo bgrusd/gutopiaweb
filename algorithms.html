@@ -69,7 +69,6 @@
         </div>
         <div class="intro-art" aria-hidden="true">
           <svg viewBox="0 0 440 190">
-
             <path
               class="hero-grid"
               d="M0 50H440M0 95H440M0 140H440M70 0V190M145 0V190M220 0V190M295 0V190M370 0V190"
@@ -142,6 +141,20 @@
               aria-hidden="true"
             ></span>
           </div>
+          <section
+            class="plain-explainer"
+            aria-label="A plain-language introduction"
+          >
+            <div class="explainer-card">
+              <h3>What it does, and why</h3>
+              <p id="plain-what"></p>
+            </div>
+            <div class="explainer-card">
+              <h3>Think of it like this</h3>
+              <p id="plain-analogy"></p>
+            </div>
+            <p class="common-uses" id="plain-uses"></p>
+          </section>
           <div class="tabs" role="tablist" aria-label="Algorithm details">
             <button
               id="tab-demo"
@@ -251,11 +264,12 @@
               class="metrics-grid"
               aria-label="Calculated summary"
             ></div>
-            <div class="pipeline-heading">
-              <h3>Follow the pipeline</h3>
-              <span>A small model, step by step</span>
-            </div>
-            <div id="pipeline" class="pipeline"></div>
+            <details class="pipeline-disclosure">
+              <summary>
+                Follow the calculation, step by step <span>4 steps</span>
+              </summary>
+              <div id="pipeline" class="pipeline"></div>
+            </details>
             <div class="takeaway">
               <span aria-hidden="true">↳</span>
               <div>
@@ -301,6 +315,9 @@
         </div>
       </section>
       <div class="lab-footer">
+        <button id="choose-another" class="small-button choose-another">
+          Choose another algorithm ↑
+        </button>
         <p>
           Built from Gutopia’s demo algorithm source.<br /><span
             >Handwritten JavaScript kernels. No black-box prediction

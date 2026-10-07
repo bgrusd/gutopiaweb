@@ -47,6 +47,39 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
         item.id,
       );
       assert.equal(await page.locator("#chart svg").count(), 1, item.id);
+      assert(
+        await page.locator(".plain-explainer").isVisible(),
+        item.id + " plain explanation missing",
+      );
+      const copy = await page.evaluate(() => {
+        const row = window.GutopiaCatalog.find(
+          (x) => x.id === window.GutopiaLabState.selectedId,
+        );
+        return {
+          what: row.plainLanguage.what,
+          analogy: row.plainLanguage.analogy,
+          uses: row.plainLanguage.uses,
+        };
+      });
+      assert.equal(await page.locator("#plain-what").innerText(), copy.what);
+      assert.equal(
+        await page.locator("#plain-analogy").innerText(),
+        copy.analogy,
+      );
+      assert.equal(await page.locator("#plain-uses").innerText(), copy.uses);
+      assert(
+        await page
+          .locator(".plain-explainer")
+          .evaluate(
+            (el) =>
+              !!(
+                el.compareDocumentPosition(document.getElementById("chart")) &
+                Node.DOCUMENT_POSITION_FOLLOWING
+              ),
+          ),
+        item.id + " explanation is not before the chart",
+      );
+
       assert.equal(await page.locator(".metric").count(), 4, item.id);
       assert.equal(await page.locator(".pipeline-step").count(), 4, item.id);
       const chart = await page.locator("#chart").innerHTML();
@@ -199,6 +232,37 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
           ),
           `${width}px overflow`,
         );
+        if (width <= 390) {
+          const fonts = await page.evaluate(() =>
+            [...document.querySelectorAll("#chart svg text")]
+              .filter((el) => el.textContent.trim())
+              .map((el) => {
+                const matrix = el.getScreenCTM();
+                return (
+                  parseFloat(getComputedStyle(el).fontSize) *
+                  Math.hypot(matrix.a, matrix.b)
+                );
+              }),
+          );
+          assert(
+            fonts.every((size) => size >= 11.95),
+            `${width}px ${item.id}: axis smaller than 12 displayed pixels: ${fonts.join(", ")}`,
+          );
+          assert(
+            await page
+              .locator("#plain-what")
+              .evaluate(
+                (el) => parseFloat(getComputedStyle(el).fontSize) >= 16,
+              ),
+            `${width}px ${item.id}: explanation too small`,
+          );
+          assert(
+            await page
+              .locator("#tab-demo")
+              .evaluate((el) => el.getBoundingClientRect().height >= 44),
+            `${width}px ${item.id}: tab touch target too small`,
+          );
+        }
       }
     }
     await page.setViewportSize({ width: 390, height: 844 });
@@ -212,6 +276,48 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
       window.scrollTo(0, 0);
     });
     await page.screenshot({ path: output + "/mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('[data-algorithm="dtw"]').click();
+    await page.waitForFunction(
+      () => window.GutopiaLabState.selectedId === "dtw",
+    );
+    await page.locator("#tab-purpose").click();
+    await page.evaluate(() => {
+      document.activeElement?.blur();
+      window.scrollTo(0, 0);
+    });
+    await page.screenshot({
+      path: output + "/dtw-idea-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.locator("#tab-methodology").click();
+    await page.screenshot({
+      path: output + "/dtw-methodology.png",
+      fullPage: true,
+    });
+    // A 720 CSS-pixel layout at 2x pixel density represents a 1440-pixel screen at 200% zoom.
+    const zoomed = await browser.newPage({
+      viewport: { width: 720, height: 900 },
+      deviceScaleFactor: 2,
+    });
+    await zoomed.goto(url + "#dtw");
+    await zoomed.waitForFunction(
+      () => window.GutopiaLabState?.selectedId === "dtw",
+    );
+    assert(
+      await zoomed.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    assert(
+      await zoomed
+        .locator("#plain-what")
+        .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 16),
+    );
+    await zoomed.locator("#tab-methodology").click();
+    assert(await zoomed.locator("#panel-methodology").isVisible());
+    await zoomed.close();
     const reduced = await browser.newPage({
       viewport: { width: 390, height: 844 },
       reducedMotion: "reduce",

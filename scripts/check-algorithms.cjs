@@ -19,6 +19,15 @@ assert.deepEqual(
   new Set(Object.keys(demo).filter((x) => x.startsWith("run"))),
 );
 assert.equal(catalog.filter((x) => x.variant).length, 5);
+assert.equal(new Set(catalog.map((x) => x.plainLanguage.what)).size, 23);
+assert.equal(
+  new Set(catalog.map((x) => x.methodology.map((p) => p[1]).join(" "))).size,
+  23,
+);
+const dtw = catalog.find((x) => x.id === "dtw");
+assert(/seven consecutive days/.test(dtw.plainLanguage.what));
+assert(/three-row steps/.test(dtw.plainLanguage.what));
+assert(/sliding window/.test(dtw.walkthrough));
 const meaningfulArray = (result) =>
   Object.values(result).some((value) => Array.isArray(value) && value.length);
 function finiteNumbers(value) {
@@ -41,6 +50,18 @@ for (const seed of [42, 137]) {
       "evaluation",
     ])
       assert(entry[field]?.length > 20, `${entry.id}: missing ${field}`);
+    assert(
+      entry.plainLanguage.what.length > 100 &&
+        entry.plainLanguage.analogy.length > 100 &&
+        entry.plainLanguage.uses.length > 30,
+      `${entry.id}: incomplete everyday explanation`,
+    );
+    assert.equal(entry.methodology.length, 4);
+    for (const [title, paragraph] of entry.methodology)
+      assert(
+        title && paragraph.length > 100,
+        `${entry.id}: incomplete methodology step`,
+      );
     assert.equal(entry.steps.length, 4);
     assert(entry.source[1].startsWith("https://"));
     const result = demo[entry.handler](snapshot);
