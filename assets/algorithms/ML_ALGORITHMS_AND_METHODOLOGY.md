@@ -1,8 +1,8 @@
 # Gutopia: understanding the ML algorithms and how they were built
 
-Reviewed October 6, 2026. This guide explains the coursework algorithms in everyday language, then shows the mathematics, implementation choices and evidence behind them. All demonstrations belong **inside the same app, on demo data**.
+Reviewed October 6; verification and deployment status updated October 7, 2026. This guide explains the coursework algorithms in everyday language, then shows the mathematics, implementation choices and evidence behind them. All demonstrations belong **inside the same app, on demo data**.
 
-**Current status:** all **23 demonstrations** are available through direct functions in `demoAlgorithms/workflows.js` and the Demo Algorithms menu. The automated app suite passes **317 tests across 32 suites**. Those tests include real numerical calculations, selection of all 23 demonstrations in the UI, SQLite integration, lifecycle behavior and feature checks. The final iOS JavaScript/Hermes export succeeds. Native-device release checks remain pending.
+**Current status:** all **23 demonstrations** are available through direct functions in `demoAlgorithms/workflows.js` and the Demo Algorithms menu. The automated app suite passes **317 tests across 32 suites**. Those tests include real numerical calculations, selection of all 23 demonstrations in the UI, SQLite integration, lifecycle behavior and feature checks. The final iOS JavaScript/Hermes export and a Debug simulator build succeeded; simulator startup logs also verified JavaScript execution and fresh database initialization. Manual screen navigation and native-device release checks remain pending.
 
 There are two implementations to understand. **Archived implementation** means the original coursework code preserved in Git. **Current demo** means the simpler implementation now in the app. The current version keeps the algorithm families and their educational value, with explicit changes to some targets, data preparation and numerical methods. It does not reproduce every historical behavior byte for byte. Section 10 explains the differences.
 
