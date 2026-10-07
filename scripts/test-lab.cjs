@@ -63,8 +63,15 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
       });
       assert.equal(await page.locator("#plain-what").innerText(), copy.what);
       assert.equal(
-        await page.locator("#plain-analogy").innerText(),
-        copy.analogy,
+        await page.locator("#plain-analogy").count(),
+        0,
+        item.id + " main analogy was not removed",
+      );
+      assert(
+        !(await page.locator(".plain-explainer").innerText()).includes(
+          copy.analogy,
+        ),
+        item.id + " analogy remains in main overview",
       );
       assert.equal(await page.locator("#plain-uses").innerText(), copy.uses);
       assert(
@@ -97,6 +104,13 @@ const output = process.env.LAB_QA_OUTPUT || "/tmp/gutopia-web-qa";
           (await page.locator(`#panel-${tab}`).innerText()).length > 200,
           item.id + " empty explanation",
         );
+        if (tab === "purpose")
+          assert(
+            (await page.locator("#panel-purpose").innerText()).includes(
+              copy.analogy,
+            ),
+            item.id + " Idea-tab explanation changed",
+          );
       }
       await page.locator("#tab-demo").click();
     }

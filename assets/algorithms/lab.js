@@ -1110,7 +1110,6 @@
     $("algorithm-title").textContent = selected.title;
     $("algorithm-description").textContent = selected.description;
     $("plain-what").textContent = selected.plainLanguage.what;
-    $("plain-analogy").textContent = selected.plainLanguage.analogy;
     $("plain-uses").textContent = selected.plainLanguage.uses;
     $("algorithm-number").textContent =
       `${String(selected.number).padStart(2, "0")} / 23`;

@@ -1605,7 +1605,7 @@ body {
 }
 .plain-explainer {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 17px 22px;
   padding: 20px 22px 16px;
   margin: 0 0 18px;
