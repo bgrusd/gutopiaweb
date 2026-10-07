@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <script>
+      // Capture an implicit confirmation callback only in memory. Remove all URL
+      // credentials before loading fonts/assets or starting the Auth request.
+      (() => {
+        "use strict";
+        let accessToken = null;
+        let linkState = "neutral";
+        try {
+          const fragment = new URLSearchParams(location.hash.slice(1));
+          const query = new URLSearchParams(location.search);
+          const hasError =
+            fragment.has("error") ||
+            fragment.has("error_code") ||
+            query.has("error") ||
+            query.has("error_code");
+          const hasUnsupportedFlow =
+            fragment.has("code") ||
+            fragment.has("token_hash") ||
+            query.has("code") ||
+            query.has("token_hash");
+          const fragmentToken = fragment.get("access_token");
+          if (hasError) linkState = "link-error";
+          else if (hasUnsupportedFlow || query.has("access_token"))
+            linkState = "unsupported";
+          else if (fragmentToken) {
+            if (
+              fragmentToken.length <= 12000 &&
+              /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(
+                fragmentToken,
+              )
+            ) {
+              accessToken = fragmentToken;
+              linkState = "verifying";
+            } else linkState = "malformed";
+          } else if (
+            fragment.has("access_token") ||
+            fragment.has("refresh_token") ||
+            query.has("refresh_token")
+          )
+            linkState = "malformed";
+          history.replaceState(null, "", location.pathname);
+        } catch {
+          // If URL cleanup cannot be completed, do not transmit credentials.
+          accessToken = null;
+          linkState = "cleanup-error";
+          try {
+            history.replaceState(null, "", location.pathname);
+          } catch {}
+        }
+
+        document.addEventListener(
+          "DOMContentLoaded",
+          async () => {
+            const title = document.getElementById("confirmation-title");
+            const message = document.getElementById("confirmation-message");
+            const detail = document.getElementById("confirmation-detail");
+            const icon = document.getElementById("confirmation-icon");
+            const badge = document.getElementById("confirmation-badge");
+            const card = document.getElementById("confirmation-card");
+            const states = {
+              neutral: [
+                "Finish setting up Gutopia",
+                "Open the confirmation link in your email. Once your email is confirmed, return to Gutopia and sign in with the email and password you chose.",
+                "This page by itself does not confirm an account. Your app sign-in is a separate step.",
+                "EMAIL CONFIRMATION",
+                "✉",
+              ],
+              verifying: [
+                "Checking your confirmation…",
+                "We’re checking the session returned by your email link with Gutopia’s authentication service.",
+                "You can leave this page if you prefer, then try signing in directly in the app.",
+                "VERIFYING YOUR LINK",
+                "◎",
+              ],
+              confirmed: [
+                "Your email is confirmed.",
+                "You’re ready to return to Gutopia. Open the app and sign in with the email and password you chose.",
+                "This page does not sign you into the app or transfer a session. Your tracking data stays in the app.",
+                "EMAIL VERIFIED",
+                "✓",
+              ],
+              unconfirmed: [
+                "Your email isn’t confirmed yet.",
+                "The returned session could be checked, but the account does not show a confirmed email. Open the latest confirmation email and follow its link.",
+                "Then return to Gutopia and try signing in. This page cannot confirm your email on its own.",
+                "ONE MORE STEP",
+                "✉",
+              ],
+              "link-error": [
+                "This confirmation link couldn’t be used.",
+                "The link may have expired or already been used. Open your latest confirmation email and try its link, or return to the app and try signing in.",
+                "If you still can’t get in, contact Gutopia support. No account status was verified on this page.",
+                "LINK NEEDS ATTENTION",
+                "!",
+              ],
+              malformed: [
+                "We couldn’t verify this link.",
+                "The link did not contain a usable confirmation session. Open the original link from your latest confirmation email, or return to the app and try signing in.",
+                "No account status was verified. Your session has not been saved by this page.",
+                "CHECK YOUR EMAIL LINK",
+                "!",
+              ],
+              unsupported: [
+                "Return to your confirmation email.",
+                "This page cannot complete the type of sign-in link it received. Use the original confirmation link in your email, then return to Gutopia and try signing in.",
+                "No verification code has been exchanged, and no account status was verified here. Contact support if the link keeps returning you to this message.",
+                "A DIFFERENT LINK TYPE",
+                "✉",
+              ],
+              rejected: [
+                "We couldn’t verify this session.",
+                "The returned session is invalid, expired or no longer available. Your email may already be confirmed; return to the app and try signing in, or use your latest confirmation email.",
+                "This page has not established your account’s confirmation status.",
+                "SESSION NOT VERIFIED",
+                "!",
+              ],
+              offline: [
+                "We couldn’t reach the confirmation service.",
+                "Check your connection, then reopen the original link in your email. You can also return to the app and try signing in if confirmation has already completed.",
+                "We haven’t verified your account status. Refreshing this page won’t retry the removed session link.",
+                "CONNECTION INTERRUPTED",
+                "!",
+              ],
+              timeout: [
+                "The confirmation check took too long.",
+                "Check your connection, then reopen the original link in your email, or return to Gutopia and try signing in.",
+                "We haven’t verified your account status. The check was stopped after 15 seconds.",
+                "PLEASE TRY AGAIN",
+                "!",
+              ],
+              "cleanup-error": [
+                "Open Gutopia to continue.",
+                "This browser couldn’t safely prepare the confirmation link. Close this tab, then return to the app and try signing in or open the original email link in another browser.",
+                "No verification request was sent from this page.",
+                "CONTINUE IN THE APP",
+                "!",
+              ],
+            };
+            function show(state) {
+              const copy = states[state] || states.neutral;
+              title.textContent = copy[0];
+              message.textContent = copy[1];
+              detail.textContent = copy[2];
+              badge.textContent = copy[3];
+              icon.textContent = copy[4];
+              card.dataset.state = state;
+              card.setAttribute("aria-busy", String(state === "verifying"));
+              document.title =
+                state === "confirmed"
+                  ? "Email confirmed — Gutopia"
+                  : "Account confirmation — Gutopia";
+            }
+            show(linkState);
+            document.getElementById("year").textContent =
+              new Date().getFullYear();
+            if (linkState !== "verifying" || !accessToken) {
+              accessToken = null;
+              return;
+            }
+            const controller = new AbortController();
+            let timedOut = false;
+            const timeout = setTimeout(() => {
+              timedOut = true;
+              controller.abort();
+            }, 15000);
+            const stopRequest = () => controller.abort();
+            window.addEventListener("pagehide", stopRequest, { once: true });
+            try {
+              const request = fetch(
+                "https://mbgcmhqeymxmhzaeburk.supabase.co/auth/v1/user",
+                {
+                  method: "GET",
+                  headers: {
+                    apikey: "sb_publishable_ZwNXDMTaGhMwlPdLaaAjog_WZMRdeHx",
+                    Authorization: "Bearer " + accessToken,
+                  },
+                  credentials: "omit",
+                  cache: "no-store",
+                  referrerPolicy: "no-referrer",
+                  signal: controller.signal,
+                },
+              );
+              accessToken = null;
+              const response = await request;
+              if (!response.ok) {
+                show("rejected");
+                return;
+              }
+              let user = await response.json();
+              const confirmed =
+                typeof user?.email_confirmed_at === "string" &&
+                Number.isFinite(Date.parse(user.email_confirmed_at));
+              user = null;
+              show(confirmed ? "confirmed" : "unconfirmed");
+            } catch {
+              show(timedOut ? "timeout" : "offline");
+            } finally {
+              accessToken = null;
+              clearTimeout(timeout);
+              window.removeEventListener("pagehide", stopRequest);
+            }
+          },
+          { once: true },
+        );
+      })();
+    </script>
+    <title>Account confirmation — Gutopia</title>
+    <meta
+      name="description"
+      content="Return to Gutopia after confirming your email. Your app sign-in is a separate step."
+    />
+    <meta name="theme-color" content="#0a0c1b" />
+    <link rel="icon" href="assets/app-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/account-confirmation.css" />
+  </head>
+  <body>
+    <header class="confirmation-nav">
+      <a href="/" class="wordmark"
+        ><img
+          src="assets/app-icon-transparent.png"
+          alt=""
+          width="34"
+          height="34"
+        />gutopia<span>.</span></a
+      ><a href="support.html">Need help? ↗</a>
+    </header>
+    <main>
+      <section
+        class="confirmation-card"
+        id="confirmation-card"
+        aria-labelledby="confirmation-title"
+        aria-busy="false"
+        data-state="neutral"
+      >
+        <div
+          class="confirmation-icon"
+          id="confirmation-icon"
+          aria-hidden="true"
+        >
+          ✉
+        </div>
+        <p class="eyebrow" id="confirmation-badge">EMAIL CONFIRMATION</p>
+        <div role="status" aria-live="polite" aria-atomic="true">
+          <h1 id="confirmation-title">Finish setting up Gutopia</h1>
+          <p class="message" id="confirmation-message">
+            Open the confirmation link in your email. Once your email is
+            confirmed, return to Gutopia and sign in with the email and password
+            you chose.
+          </p>
+        </div>
+        <a class="open-app" href="gutopia://auth/confirmed"
+          >Return to Gutopia <span aria-hidden="true">↗</span></a
+        >
+        <p class="app-note">
+          If the app doesn’t open, switch to Gutopia manually.<br />Then choose
+          <strong>Sign in</strong>.
+        </p>
+        <div class="confirmation-detail">
+          <span aria-hidden="true">◎</span>
+          <p id="confirmation-detail">
+            This page by itself does not confirm an account. Your app sign-in is
+            a separate step.
+          </p>
+        </div>
+        <div class="fallback-links">
+          <a
+            href="https://apps.apple.com/us/app/gutopia/id6749170728"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Get Gutopia on the App Store ↗</a
+          ><a href="/">Back to the website</a>
+        </div>
+      </section>
+      <p class="private-note">
+        Your session is checked only for this page.<br />No account session is
+        stored here or passed to the app.
+      </p>
+      <noscript
+        ><p class="noscript-message">
+          JavaScript is required to check the session returned by your email
+          link. You can still return to Gutopia and try signing in. This page
+          does not confirm an account by itself.
+        </p></noscript
+      >
+    </main>
+    <footer>
+      © <span id="year"></span> Gutopia <span>·</span>
+      <a href="privacy.html">Privacy</a> <span>·</span>
+      <a href="support.html">Support</a>
+    </footer>
+  </body>
+</html>
