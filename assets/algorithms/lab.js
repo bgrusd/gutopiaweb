@@ -160,10 +160,12 @@
   function legend(items) {
     return `<div class="legend">${items.map(([name, color]) => `<span><i style="background:${color}"></i>${esc(name)}</span>`).join("")}</div>`;
   }
-  function details(day, group = "All") {
+  function details(day, group = "All", recordedOnly = false) {
     const row = lookup.get(day);
+    const entries = descriptors.filter(d => (group === "All" || d.group === group) && (!recordedOnly || Number.isFinite(d.read(row))));
+    if (!entries.length) return `<p>No recorded measurements for ${esc(day)} in this category.</p>`;
     return `<div class="table-wrap"><table><caption class="selected-date">Original entries · ${esc(day)}</caption><tbody>${descriptors
-      .filter((d) => group === "All" || d.group === group)
+      .filter(d => entries.includes(d))
       .map(
         (d) =>
           `<tr><th scope="row">${esc(d.label)}</th><td>${Number.isFinite(d.read(row)) ? `${fmt(d.read(row))} ${esc(d.unit)}` : "Not logged"}</td></tr>`,
@@ -278,6 +280,7 @@
   }
   function loadHistory() {
     stop();
+    $("map-day-dialog").close();
     revision++;
     mapRevision++;
     mapLayout = null;
@@ -320,6 +323,7 @@
   }
   async function render({ preserveScan = false } = {}) {
     stop();
+    if (!["pca", "kmeans", "dbscan"].includes(selected)) $("map-day-dialog").close();
     const request = ++revision;
     mapRevision++;
     sensitivity = null;
@@ -871,8 +875,8 @@
       `<text x="450" y="324" text-anchor="middle">${opts.map === "umap" && mapLayout ? "UMAP drawing coordinate" : "First PCA summary"}</text>`;
     $("question-result").innerHTML =
       card(
-        "Every dot is a day and its recent history",
-        `<p>Measurements from the day and 1, 3 and 7 calendar days earlier describe each dot. Changing the drawing keeps the group labels fixed.</p>${result.groupingDimensions ? `<p class="muted">Groups use ${result.groupingDimensions} ${result.groupingSpace === "pca" ? "PCA summaries" : "scaled measurements and logging flags"}.</p>` : ""}${opts.map === "umap" && !mapLayout ? '<p id="map-progress" role="status">Arranging neighbourhoods…</p>' : ""}` +
+        "Every dot is a recorded day and its recent history",
+        `<p>Each dot has measurements recorded on that date, plus 1-, 3- and 7-day history. Tap a point to open its details. Changing the drawing keeps the group labels fixed.</p>${result.excludedDates.length ? `<p class="muted">${result.recordedDays} days mapped · ${result.excludedDates.length} completely unlogged days excluded. They remain in the timeline and calendar history.</p>` : ""}${result.groupingDimensions ? `<p class="muted">Groups use ${result.groupingDimensions} ${result.groupingSpace === "pca" ? "PCA summaries" : "scaled measurements and logging flags"}.</p>` : ""}${opts.map === "umap" && !mapLayout ? '<p id="map-progress" role="status">Arranging neighbourhoods…</p>' : ""}` +
           legend(
             groups.map((g) => [
               g === -1
@@ -889,7 +893,7 @@
             335,
           ) +
           cursor(points.length - 1) +
-          `<div id="map-day-summary"></div>`,
+          `<button id="inspect-mapped-day">Open day details</button>`,
       ) +
       card(
         "What do these axes mean?",
@@ -915,9 +919,9 @@
               .join(
                 "",
               )}<p>Some nearby dots have different colours because other measurements differ. Missing inputs use their observed average for distances with lightly weighted flags; original values still say not logged.</p>`,
-      ) +
-      card(
-        "Inspect this day",
+      );
+    $("map-day-body").innerHTML =
+        '<div id="map-day-summary"></div><div class="controls">' +
         choose("History to inspect", "historyLag", [
           [0, "Selected day"],
           [1, "1 day earlier"],
@@ -930,8 +934,7 @@
             "Foods",
             "Medications",
           ]) +
-          '<div id="map-day-detail"></div>',
-      );
+          '</div><div id="map-day-detail"></div>';
     const update = () => {
       const i = Math.min(opts.dateIndex, points.length - 1),
         p = points[i];
@@ -964,7 +967,8 @@
       const day = new Date(A.time(p.date) - opts.historyLag * A.DAY)
         .toISOString()
         .slice(0, 10);
-      $("map-day-detail").innerHTML = details(day, opts.group);
+      $("map-day-title").textContent = `Day details · ${p.date}`;
+      $("map-day-detail").innerHTML = details(day, opts.group, true);
       document
         .querySelectorAll("#question-result [data-date-index]")
         .forEach((n) => {
@@ -986,7 +990,24 @@
         selectedHistoryDay: day,
       });
     };
-    bindCursor(points.length, update);
+    const inspect = () => {
+      stop();
+      opts.group = "All"; opts.historyLag = 0;
+      $("map-day-body").querySelector('[data-option="group"]').value = opts.group;
+      $("map-day-body").querySelector('[data-option="historyLag"]').value = opts.historyLag;
+      update();
+      $("map-day-dialog").showModal();
+      $("map-day-body").scrollTop = 0;
+    };
+    $("map-day-body").onchange = e => {
+      const key = e.target.dataset.option;
+      if (!["group", "historyLag"].includes(key)) return;
+      e.stopPropagation();
+      opts[key] = key === "historyLag" ? Number(e.target.value) : e.target.value;
+      update();
+    };
+    $("inspect-mapped-day").onclick = inspect;
+    bindCursor(points.length, update, inspect);
     update();
     if (opts.map === "umap" && !mapLayout) {
       const mapRequest = ++mapRevision;
@@ -1508,7 +1529,7 @@
       context,
     });
   }
-  function bindCursor(length, update) {
+  function bindCursor(length, update, inspectPoint) {
     const set = (i) => {
       opts.dateIndex = Math.max(0, Math.min(length - 1, i));
       $("date-slider").value = opts.dateIndex;
@@ -1535,14 +1556,17 @@
     document
       .querySelectorAll("[data-date-index]")
       .forEach((node) =>
-        node.addEventListener("click", () =>
-          set(Number(node.dataset.dateIndex)),
-        ),
+        node.addEventListener("click", () => {
+          set(Number(node.dataset.dateIndex));
+          inspectPoint?.();
+        }),
       );
   }
   $("choose-question").addEventListener("click", () => {
     $("question-drawer").showModal();
   });
+  $("close-map-day").addEventListener("click", () => $("map-day-dialog").close());
+  $("map-day-dialog").addEventListener("click", e => { if (e.target === $("map-day-dialog")) $("map-day-dialog").close(); });
   $("close-drawer").addEventListener("click", () =>
     $("question-drawer").close(),
   );

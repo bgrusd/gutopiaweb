@@ -79,8 +79,8 @@ function runPcaLasso(s) { return result('PCA + LASSO', s, fitPrediction(s, { kin
 function runPcaLogistic(s) { return result('PCA + logistic LASSO', s, fitPrediction(s, { kind: 'logistic', projected: true })); }
 function runPca(s) {
   requireDemo(s);
-  const { embedding, pca: model } = daySpace(s);
-  return result('Map similar days', s, { features: embedding.featureNames, embeddingLags: embedding.lags, explainedVariance: model.explainedVariance.map(round), loadings: model.loadings, clusteringSpace: model.scores, points: model.scores.map((point, i) => ({ x: point[0], y: point[1] ?? 0, date: s.rows[i].date })) });
+  const { embedding, pca: model, excludedDates } = daySpace(s);
+  return result('Map similar days', s, { features: embedding.featureNames, embeddingLags: embedding.lags, excludedDates, calendarDays: s.rows.length, recordedDays: embedding.dates.length, explainedVariance: model.explainedVariance.map(round), loadings: model.loadings, clusteringSpace: model.scores, points: model.scores.map((point, i) => ({ x: point[0], y: point[1] ?? 0, date: embedding.dates[i] })) });
 }
 function runCorrelation(s) {
   requireDemo(s, 6);
@@ -106,14 +106,15 @@ function runTriggerAnalysis(s, { input = null, target = 'pain', lag = 1 } = {}) 
 function runKMeans(s, { k = 3, space = 'full' } = {}) {
   const projected = runPca(s), X = space === 'pca' ? projected.clusteringSpace : daySpace(s).X;
   const clusters = M.kmeans(X, k, s.seed);
-  return result(`${space === 'pca' ? 'PCA summaries' : 'Full day history'} + K-means (K = ${k})`, s, { ...clusters, groupingSpace: space, groupingDimensions: X[0].length, missingFlagWeight: 0.25, explainedVariance: projected.explainedVariance, embeddingLags: projected.embeddingLags, features: projected.features, loadings: projected.loadings, points: projected.points.map((point, i) => ({ ...point, cluster: clusters.labels[i] })) });
+  return result(`${space === 'pca' ? 'PCA summaries' : 'Full day history'} + K-means (K = ${k})`, s, { ...clusters, excludedDates: projected.excludedDates, calendarDays: projected.calendarDays, recordedDays: projected.recordedDays, groupingSpace: space, groupingDimensions: X[0].length, missingFlagWeight: 0.25, explainedVariance: projected.explainedVariance, embeddingLags: projected.embeddingLags, features: projected.features, loadings: projected.loadings, points: projected.points.map((point, i) => ({ ...point, cluster: clusters.labels[i] })) });
 }
 function runDbscan(s, { radiusScale = 1, space = 'full' } = {}) {
   const projected = runPca(s), X = space === 'pca' ? projected.clusteringSpace : daySpace(s).X;
+  if (X.length < 4) throw new Error('DBSCAN needs at least four days with recorded measurements. Completely unlogged days are excluded.');
   const neighbors = X.map((row, i) => X.filter((_, j) => j !== i).map(other => M.distance(row, other)).sort((a, b) => a - b)[2] ?? 0).sort((a, b) => a - b);
   const epsilon = Math.max(0.01, (neighbors[Math.floor(neighbors.length * 0.5)] ?? 0.7) * radiusScale);
   const clusters = M.dbscan(X, epsilon, 4);
-  return result(`${space === 'pca' ? 'PCA summaries' : 'Full day history'} + DBSCAN`, s, { ...clusters, epsilon, minPoints: 4, groupingSpace: space, groupingDimensions: X[0].length, missingFlagWeight: 0.25, explainedVariance: projected.explainedVariance, embeddingLags: projected.embeddingLags, features: projected.features, loadings: projected.loadings, points: projected.points.map((point, i) => ({ ...point, cluster: clusters.labels[i] })) });
+  return result(`${space === 'pca' ? 'PCA summaries' : 'Full day history'} + DBSCAN`, s, { ...clusters, excludedDates: projected.excludedDates, calendarDays: projected.calendarDays, recordedDays: projected.recordedDays, epsilon, minPoints: 4, groupingSpace: space, groupingDimensions: X[0].length, missingFlagWeight: 0.25, explainedVariance: projected.explainedVariance, embeddingLags: projected.embeddingLags, features: projected.features, loadings: projected.loadings, points: projected.points.map((point, i) => ({ ...point, cluster: clusters.labels[i] })) });
 }
 function* dtwSearch(s, optimized = false) {
   requireDemo(s, 6);

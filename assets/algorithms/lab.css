@@ -518,6 +518,20 @@ dialog header h2 {
   font-size: 1.3rem;
   margin: 0;
 }
+#map-day-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: 88dvh;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #121627;
+  color: var(--fg);
+  overflow: hidden;
+}
+#map-day-dialog[open] { display: flex; flex-direction: column; animation: none; }
+#map-day-dialog header { flex-shrink: 0; margin-bottom: 12px; gap: 12px; }
+#map-day-body { overflow: auto; min-height: 0; overscroll-behavior: contain; }
 #question-list,
 #advanced-list {
   display: grid;

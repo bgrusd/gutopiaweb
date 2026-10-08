@@ -76,6 +76,16 @@ function finite(value) {
     finite(algorithm.run(sparse));
   for (const a of A.algorithms.filter((a) => a.kind === "cascade"))
     assert.throws(() => a.run(sparse), /consecutive/);
+  const recordedDates = sparse.rows.filter(row => A.measures(sparse).some(measure => Number.isFinite(measure.read(row)))).map(row => row.date);
+  const emptyDates = sparse.rows.filter(row => !recordedDates.includes(row.date)).map(row => row.date);
+  for (const run of [A.runPca, A.runKMeans, A.runDbscan]) for (const space of ["full", "pca"]) {
+    const grouped = run(sparse, { space });
+    assert.deepEqual(json(grouped.points.map(point => point.date)), json(recordedDates));
+    assert.deepEqual(json(grouped.excludedDates), json(emptyDates));
+  }
+  const sparseMap = await A.umapMap(sparse);
+  assert.deepEqual(json(sparseMap.map(point => point.date)), json(recordedDates));
+  assert.equal(sparse.rows.length, 150, "map filtering preserves the calendar");
   const windows = A.WINDOW_SIZES.flatMap((size) =>
       A.validWindows(sparse, size, 0),
     ),
