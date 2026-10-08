@@ -47,6 +47,23 @@ const url = process.env.LAB_URL || "http://127.0.0.1:8767/algorithms.html";
     const before = await page.locator("#scan-slider").inputValue();
     await page.waitForTimeout(800);
     assert.equal(await page.locator("#scan-slider").inputValue(), before);
+    await page.locator('[data-option="window"]').selectOption("7");
+    await page.locator("#scan-reference").click();
+    await page.locator("#scan-next").click();
+    const pausedScan = async () => ({
+      position: await page.locator("#scan-slider").inputValue(),
+      reference: await page.locator("#fixed-reference-label").innerText(),
+      candidate: await page.locator("#scan-signal").innerText(),
+      selectedSize: await page.locator('[data-option="window"]').inputValue(),
+      action: await page.locator("#scan-play").innerText(),
+    });
+    const paused = await pausedScan();
+    assert.equal(paused.action, "Play scan");
+    for (const width of [390, 1024]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.locator("#fixed-reference-label").waitFor();
+      assert.deepEqual(await pausedScan(), paused);
+    }
     await page.locator("#choose-question").click();
     await page.locator('[data-question="scenario-execution"]').first().click();
     await page.locator("#run-scenario").click();

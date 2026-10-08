@@ -28,4 +28,12 @@ DTW keeps a fixed reference while later non-overlapping windows move through a d
 - Optional `scripts/test-lab.cjs` was updated for CI browser regressions; it was not executed in this session. Interactive browser verification uses approved CUA instead.
 - `node --check assets/algorithms/lab.js` and `git diff --check` pass. These checks do not establish a production deployment or native simulator behavior.
 
+## Production verification on October 7, 2026
+
+The main implementation was published by the parent agent from commit `c07319a` through the authenticated gutopiaweb Worker; version `93b86727-ec53-465e-b7e4-151b89477a4c` was confirmed active at 100%. The parent verified production asset hashes against the checkout. Live Chrome interactions verified timeline inspection, question drawer selection/closure, heatmap explanation, exact 7-day medication relationships, executed Dairy 1→0 scenario (5.76→3.81), full-day clustering and UMAP preserving groups, and week as-of calculation (61.2% using history through May 29). Console warning/error logs were empty.
+
+The final synced sparse fixture also completed all forty missing-input comparisons in Chrome: May 30 next-day lower 5.81, median 6.41, upper 6.92. The map calculations expose 150 actual UMAP coordinates separately from the kernel PCA coordinates. These checks are numerical/UI evidence, not native-device or clinical validation.
+
+Production responsive checking found a DTW resize defect: rebuilding the phone chart reset its reference and could label a paused scan as running. The follow-up preserves scan position across breakpoint changes and derives the playback action from actual state. Approved local Chrome verification paused a 7-day scan at position 23, reference Jan 2–8 and comparison Jan 10–16, then crossed 390↔1024 pixels; position, dates, size and “Play scan” remained unchanged. The optional CI script contains the equivalent regression case but was not executed in this session. The follow-up requires production publication/verification.
+
 The deploy target is the **gutopiaweb Cloudflare Worker**, which owns the gutopia.ai custom domain. The similarly named older Pages project is not the live site. `.assetsignore` excludes development dependencies/scripts/configuration from asset upload. Publish only after reviewing the prepared branch and browser preview; verify the Worker version and production interaction afterward.

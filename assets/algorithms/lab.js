@@ -317,7 +317,7 @@
       )
       .join("");
   }
-  async function render() {
+  async function render({ preserveScan = false } = {}) {
     stop();
     const request = ++revision;
     mapRevision++;
@@ -385,7 +385,7 @@
         }
         if (request !== revision) return;
         calculated(result);
-        if (algorithm.kind === "dtw") renderDtw(result);
+        if (algorithm.kind === "dtw") renderDtw(result, preserveScan);
         else if (["clusters", "projection"].includes(algorithm.kind))
           renderMap(result, request);
         else if (selected === "event-windows") renderEvent(result);
@@ -1171,7 +1171,7 @@
       }
     });
   }
-  function renderDtw(result) {
+  function renderDtw(result, preserveScan = false) {
     $("question-controls").innerHTML =
       choose("Window lengths", "window", [
         [0, "Scan 3, 5, 7 and 14 days"],
@@ -1242,14 +1242,16 @@
             : snapshot.rows.length - 1
         ].date,
     });
-    scanPosition = 0;
+    scanPosition = preserveScan
+      ? Math.min(scanPosition, Math.max(0, scanPlan.total - 1))
+      : 0;
     scanScores = null;
     scanSweep = null;
     scanPage = "";
     $("question-result").innerHTML =
       card(
         "Hold the reference. Sweep forward. Advance and repeat.",
-        `<p>A reference stays fixed while a later, non-overlapping window moves across the timeline. After its sweep, the reference moves ${opts.referenceStep} calendar day(s). At each reference date, the selected lengths finish their sweeps before the reference advances. The animation explores this panel; ranked matches below search the entire history.</p><div class="controls"><button id="scan-play">${reduced.matches ? "Play scan" : "Pause scan"}</button><button id="scan-next">Next comparison</button><button id="scan-reference">Next reference</button><button id="scan-reset">Restart</button></div><label>Search position<input id="scan-slider" type="range" min="0" max="${Math.max(0, scanPlan.total - 1)}" step="1" value="0"></label><h3 id="fixed-reference-label"></h3><div id="fixed-reference-chart"></div><div id="scan-chart"></div><div id="scan-signal" class="signal" role="status"></div><div class="scan-labels" id="scan-labels"></div><div id="scan-values" class="stats"></div><p class="muted">Bottom rail marks unlogged days. Unknown days can form a shared logging pattern; their pain is still unknown. Scoring requires two recorded ratings in each period. Gold marks the closest 10% for the current reference, not a recurrence probability.</p>`,
+        `<p>A reference stays fixed while a later, non-overlapping window moves across the timeline. After its sweep, the reference moves ${opts.referenceStep} calendar day(s). At each reference date, the selected lengths finish their sweeps before the reference advances. The animation explores this panel; ranked matches below search the entire history.</p><div class="controls"><button id="scan-play">Play scan</button><button id="scan-next">Next comparison</button><button id="scan-reference">Next reference</button><button id="scan-reset">Restart</button></div><label>Search position<input id="scan-slider" type="range" min="0" max="${Math.max(0, scanPlan.total - 1)}" step="1" value="0"></label><h3 id="fixed-reference-label"></h3><div id="fixed-reference-chart"></div><div id="scan-chart"></div><div id="scan-signal" class="signal" role="status"></div><div class="scan-labels" id="scan-labels"></div><div id="scan-values" class="stats"></div><p class="muted">Bottom rail marks unlogged days. Unknown days can form a shared logging pattern; their pain is still unknown. Scoring requires two recorded ratings in each period. Gold marks the closest 10% for the current reference, not a recurrence probability.</p>`,
       ) +
       card(
         "What surrounded these patterns?",
@@ -1655,7 +1657,7 @@
     }
   });
   const compactPlots = matchMedia("(max-width: 700px)");
-  compactPlots.addEventListener("change", () => render());
+  compactPlots.addEventListener("change", () => render({ preserveScan: true }));
   document.addEventListener("pointerup", (event) => {
     const plot = event.target.closest?.("svg.plot");
     if (!plot || event.target.closest?.('circle[role="button"]')) return;
