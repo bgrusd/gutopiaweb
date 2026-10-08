@@ -115,7 +115,7 @@ function runDbscan(s, { radiusScale = 1, space = 'full' } = {}) {
   const clusters = M.dbscan(X, epsilon, 4);
   return result(`${space === 'pca' ? 'PCA summaries' : 'Full day history'} + DBSCAN`, s, { ...clusters, epsilon, minPoints: 4, groupingSpace: space, groupingDimensions: X[0].length, missingFlagWeight: 0.25, explainedVariance: projected.explainedVariance, embeddingLags: projected.embeddingLags, features: projected.features, loadings: projected.loadings, points: projected.points.map((point, i) => ({ ...point, cluster: clusters.labels[i] })) });
 }
-function runDtw(s, optimized = false) {
+function* dtwSearch(s, optimized = false) {
   requireDemo(s, 6);
   const windows = V.WINDOW_SIZES.flatMap(size => V.validWindows(s, size));
   const best = []; let comparisons = 0;
@@ -127,11 +127,34 @@ function runDtw(s, optimized = false) {
       const match = { first: a.first, second: b.first, firstSize: a.size, secondSize: b.size, firstObserved: a.observed, secondObserved: b.observed, distance: round(alignment.distance), score: round(alignment.score), firstValues: a.values, secondValues: b.values };
       best.push(match); best.sort((x, y) => x.score - y.score || (y.firstObserved + y.secondObserved) - (x.firstObserved + x.secondObserved));
       if (best.length > 5) best.pop();
+      if (comparisons % 128 === 0) yield { comparisons, total: plan.total };
     }
   }
   if (!best.length) throw new Error('DTW needs two separate calendar windows with at least two recorded pain values in each. Missing days stay in the pattern.');
   const motifs = best.map(match => ({ ...match, path: optimized ? [] : V.compareWindows({ values: match.firstValues }, { values: match.secondValues }, 2).path }));
   return result(optimized ? 'DTW with rolling memory' : 'Dynamic time warping', s, { windowSizes: V.WINDOW_SIZES, window: motifs[0].firstSize, band: 2, motifs, comparisons, memory: optimized ? 'O(window)' : 'O(window²)', missingMismatchCost: V.MISSING_MISMATCH_COST, scoreDefinition: 'sqrt(total squared cost / longer window length); missing/missing costs 0; missing/recorded costs 25', search: 'Hold each reference still and sweep only later non-overlapping periods. Advance the reference one calendar day and repeat, across all compatible lengths. Each unordered pair is scored once with banded dynamic programming; rolling memory ranks pairs and full mode reconstructs only the five winning paths.' });
+}
+function runDtw(s, optimized = false) {
+  const search = dtwSearch(s, optimized);
+  let next;
+  do { next = search.next(); } while (!next.done);
+  return next.value;
+}
+async function runDtwAsync(s, { optimized = false, isCurrent = () => true, onProgress = () => {} } = {}) {
+  const search = dtwSearch(s, optimized);
+  while (isCurrent()) {
+    const started = Date.now();
+    let next;
+    do {
+      if (!isCurrent()) return null;
+      next = search.next();
+      if (next.done) return next.value;
+    } while (Date.now() - started < 8);
+    onProgress(next.value.comparisons, next.value.total);
+    // Release the JS thread so navigation, touch and scrolling can proceed.
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  return null;
 }
 function runOptimizedDtw(s) { return runDtw(s, true); }
 function isConsecutive(rows) {
@@ -238,4 +261,4 @@ function runCascade(s, projected = false, scoreOnly = false) {
 function runPcaCascade(s) { return runCascade(s, true); }
 function runScoreCascade(s) { return runCascade(s, false, true); }
 function runSymptomCascade(s) { return runCascade(s); }
-module.exports = { runLasso, runElasticNet, runLogisticLasso, runNaiveBayes, runPcaLasso, runPcaLogistic, runPca, runCorrelation, runTriggerAnalysis, runKMeans, runDbscan, runDtw, runOptimizedDtw, runPcaElasticNet, runElasticNetForecast, runFlareWindows, runFlareThreeDay, runAutoregressive, runScenarioGeneration, runScenarioExecution, runPcaCascade, runScoreCascade, runSymptomCascade };
+module.exports = { runLasso, runElasticNet, runLogisticLasso, runNaiveBayes, runPcaLasso, runPcaLogistic, runPca, runCorrelation, runTriggerAnalysis, runKMeans, runDbscan, runDtw, runDtwAsync, runOptimizedDtw, runPcaElasticNet, runElasticNetForecast, runFlareWindows, runFlareThreeDay, runAutoregressive, runScenarioGeneration, runScenarioExecution, runPcaCascade, runScoreCascade, runSymptomCascade };

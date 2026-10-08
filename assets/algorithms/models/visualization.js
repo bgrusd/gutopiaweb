@@ -47,10 +47,15 @@ function separateWindows(windows, reference) {
 function windowScanPlan(windows, { referenceStep = 1, referenceSize = 0, comparisonSize = 0, startDate = null, endDate = null, sameLengthOnly = false } = {}) {
   const ordered = [...windows].sort((a, b) => a.first.localeCompare(b.first) || a.size - b.size);
   const origin = startDate ? time(startDate) : time(ordered[0]?.first);
+  // Parse each window's dates once, rather than millions of times inside the
+  // all-year pair filter. Keep the same chronological pair ordering.
+  const dated = ordered.map(window => ({ window, start: time(window.first), end: time(window.last) }));
+  const end = endDate ? time(endDate) : Infinity;
   const step = Math.max(1, Math.min(4, referenceStep));
   let total = 0;
-  const sweeps = ordered.filter(window => (!referenceSize || window.size === referenceSize) && time(window.first) >= origin && Math.round((time(window.first) - origin) / DAY) % step === 0).flatMap(reference => {
-    const candidates = ordered.filter(candidate => time(candidate.first) > time(reference.last) && (!endDate || time(candidate.last) <= time(endDate)) && (!sameLengthOnly || candidate.size === reference.size) && (!comparisonSize || candidate.size === comparisonSize) && Math.min(reference.size, candidate.size) / Math.max(reference.size, candidate.size) >= 0.5);
+  const sweeps = dated.filter(item => (!referenceSize || item.window.size === referenceSize) && item.start >= origin && Math.round((item.start - origin) / DAY) % step === 0).flatMap(item => {
+    const reference = item.window;
+    const candidates = dated.filter(candidate => candidate.start > item.end && candidate.end <= end && (!sameLengthOnly || candidate.window.size === reference.size) && (!comparisonSize || candidate.window.size === comparisonSize) && Math.min(reference.size, candidate.window.size) / Math.max(reference.size, candidate.window.size) >= 0.5).map(candidate => candidate.window);
     if (!candidates.length) return [];
     const sweep = { reference, candidates, offset: total };
     total += candidates.length;
@@ -75,14 +80,14 @@ function windowContext(snapshot, first, second, lag = 0) {
   if (!first || !second) return [];
   const lookup = new Map(snapshot.rows.map(row => [row.date, row]));
   const foods = ['dairy', 'spicy', 'caffeine', 'fiber', 'gluten', 'calories', 'protein', 'fat', 'carbs', 'sugar', 'sodium'];
+  const samples = window => Array.from({ length: window.size }, (_, i) => {
+    const date = time(window.first) + i * DAY;
+    return { input: lookup.get(new Date(date - lag * DAY).toISOString().slice(0, 10)), pain: lookup.get(new Date(date).toISOString().slice(0, 10))?.pain };
+  });
+  const firstSamples = samples(first), secondSamples = samples(second);
   return snapshot.featureNames.map((feature, j) => {
-    const period = window => Array.from({ length: window.size }, (_, i) => {
-      const date = time(window.first) + i * DAY;
-      const input = lookup.get(new Date(date - lag * DAY).toISOString().slice(0, 10));
-      const symptom = lookup.get(new Date(date).toISOString().slice(0, 10));
-      return input && !input.missingFeatures[j] ? { input: input.features[j], pain: symptom?.pain } : null;
-    }).filter(Boolean);
-    const a = period(first), b = period(second), paired = [...a, ...b].filter(row => Number.isFinite(row.pain));
+    const period = entries => entries.filter(row => row.input && !row.input.missingFeatures[j]).map(row => ({ input: row.input.features[j], pain: row.pain }));
+    const a = period(firstSamples), b = period(secondSamples), paired = [...a, ...b].filter(row => Number.isFinite(row.pain));
     return { feature, group: foods.includes(feature) ? 'Foods' : feature === 'medicationTaken' || feature.startsWith('Medication:') ? 'Medications' : 'Symptoms', firstMean: a.length ? mean(a.map(row => row.input)) : null, secondMean: b.length ? mean(b.map(row => row.input)) : null, firstCount: a.length, secondCount: b.length, correlation: paired.length >= 3 ? pearson(paired.map(row => row.input), paired.map(row => row.pain)) : null, pairedCount: paired.length };
   });
 }

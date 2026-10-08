@@ -210,8 +210,19 @@ function finite(value) {
       ),
     ),
   );
+  const year = A.createSnapshot(Array.from({length: 366}, (_, i) => ({date: new Date(Date.UTC(2025, 9, i + 8)).toISOString().slice(0, 10), pain: i % 3 === 0 ? 4 : null, features: [0,1,0,2,1,6]})), {limitRows: null});
+  const yearWindows = A.WINDOW_SIZES.flatMap(size => A.validWindows(year, size, 0));
+  const yearPlan = A.windowScanPlan(yearWindows, {sameLengthOnly: true});
+  assert.equal(yearPlan.total, 249355);
+  assert.equal(yearPlan.sweeps[0].candidates.at(-1).last, year.rows.at(-1).date);
+  let yielded = false;
+  setTimeout(() => { yielded = true; }, 0);
+  assert.deepEqual(json(await A.runDtwAsync(year)), json(A.runDtw(year)));
+  assert(yielded, 'Year-long scoring yields to other scheduled work');
+  let current = true;
+  assert.equal(await A.runDtwAsync(year, {isCurrent: () => current, onProgress: () => {current=false;}}), null);
   console.log(
-    `PASS: ${passed} complete-history workflow parity checks; all 20 sparse-history non-cascade workflows; source hashes; exact calendar lags/missing flags; nested unique forward DTW and rolling/full parity; editable scenarios; as-of future isolation; deterministic UMAP with unchanged cluster labels; real LASSO missing-input sensitivity changes predictions without mutating records.`,
+    `PASS: ${passed} complete-history workflow parity checks; all 20 sparse-history non-cascade workflows; source hashes; exact calendar lags/missing flags; nested unique forward DTW and rolling/full parity; editable scenarios; as-of future isolation; deterministic UMAP with unchanged cluster labels; real LASSO missing-input sensitivity changes predictions without mutating records; full-year DTW coverage, async parity, yielding and cancellation.`,
   );
 })().catch((e) => {
   console.error(e);

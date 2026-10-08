@@ -131,7 +131,8 @@
     window: 0,
     candidateWindow: 0,
     referenceStep: 1,
-    zoom: 35,
+    zoom: 0,
+    scanSpeed: 3,
     period: 0,
     contextLag: 0,
     contextFeature: "dairy",
@@ -295,7 +296,7 @@
     opts.scenarioDate = snapshot.asOfDate;
     const known = snapshot.rows.filter((r) => r.pain !== null).length;
     $("dataset-summary").textContent =
-      `${snapshot.rows.length} calendar days · ${known} recorded pain days · ${descriptors.length} measurements`;
+      `${snapshot.rows.length} calendar days · ${known} recorded pain days · ${descriptors.length} measurement types`;
     render();
   }
   function drawer() {
@@ -367,7 +368,7 @@
         ]);
         let result = resultCache.get(key);
         if (!result) {
-          result = algorithm.run(
+          result = algorithm.kind === "dtw" ? await A.runDtwAsync(snapshot, { optimized: algorithm.id === "rolling-dtw", isCurrent: () => request === revision }) : algorithm.run(
             snapshot,
             selected === "kmeans"
               ? { k: opts.k, space: opts.space }
@@ -1173,6 +1174,7 @@
   }
   function renderDtw(result, preserveScan = false) {
     $("question-controls").innerHTML =
+      choose("Playback speed", "scanSpeed", [[1, "1×"], [3, "3× · faster default"], [6, "6×"]]) +
       choose("Window lengths", "window", [
         [0, "Scan 3, 5, 7 and 14 days"],
         ...result.windowSizes.map((s) => [s, s + " days"]),
@@ -1190,7 +1192,7 @@
       ]) +
       (opts.zoom
         ? choose(
-            "Animation period",
+            "Start scanning from",
             "period",
             Array.from(
               { length: Math.ceil(snapshot.rows.length / opts.zoom) },
@@ -1235,12 +1237,7 @@
       comparisonSize: opts.candidateWindow,
       sameLengthOnly: !opts.candidateWindow,
       startDate: snapshot.rows[opts.zoom ? opts.period : 0].date,
-      endDate:
-        snapshot.rows[
-          opts.zoom
-            ? Math.min(snapshot.rows.length - 1, opts.period + opts.zoom - 1)
-            : snapshot.rows.length - 1
-        ].date,
+      endDate: snapshot.rows.at(-1).date,
     });
     scanPosition = preserveScan
       ? Math.min(scanPosition, Math.max(0, scanPlan.total - 1))
@@ -1251,7 +1248,7 @@
     $("question-result").innerHTML =
       card(
         "Hold the reference. Sweep forward. Advance and repeat.",
-        `<p>A reference stays fixed while a later, non-overlapping window moves across the timeline. After its sweep, the reference moves ${opts.referenceStep} calendar day(s). At each reference date, the selected lengths finish their sweeps before the reference advances. The animation explores this panel; ranked matches below search the entire history.</p><div class="controls"><button id="scan-play">Play scan</button><button id="scan-next">Next comparison</button><button id="scan-reference">Next reference</button><button id="scan-reset">Restart</button></div><label>Search position<input id="scan-slider" type="range" min="0" max="${Math.max(0, scanPlan.total - 1)}" step="1" value="0"></label><h3 id="fixed-reference-label"></h3><div id="fixed-reference-chart"></div><div id="scan-chart"></div><div id="scan-signal" class="signal" role="status"></div><div class="scan-labels" id="scan-labels"></div><div id="scan-values" class="stats"></div><p class="muted">Bottom rail marks unlogged days. Unknown days can form a shared logging pattern; their pain is still unknown. Scoring requires two recorded ratings in each period. Gold marks the closest 10% for the current reference, not a recurrence probability.</p>`,
+        `<p>A reference stays fixed while a later, non-overlapping window moves across the timeline. After its sweep, the reference moves ${opts.referenceStep} calendar day(s). At each reference date, the selected lengths finish their sweeps before the reference advances. Playback scans through the final date. Full history shows every date; a zoomed panel follows the comparison across the year. Ranked matches also search the entire history.</p><div class="controls"><button id="scan-play">Play scan</button><button id="scan-next">Next comparison</button><button id="scan-reference">Next reference</button><button id="scan-reset">Restart</button></div><label>Search position<input id="scan-slider" type="range" min="0" max="${Math.max(0, scanPlan.total - 1)}" step="1" value="0"></label><h3 id="fixed-reference-label"></h3><div id="fixed-reference-chart"></div><div id="scan-chart"></div><div id="scan-signal" class="signal" role="status"></div><div class="scan-labels" id="scan-labels"></div><div id="scan-values" class="stats"></div><p class="muted">Bottom rail marks unlogged days. Unknown days can form a shared logging pattern; their pain is still unknown. Scoring requires two recorded ratings in each period. Gold marks the closest 10% for the current reference, not a recurrence probability.</p>`,
       ) +
       card(
         "What surrounded these patterns?",
@@ -1316,7 +1313,7 @@
         }
         scanPosition++;
         scanFrame(result);
-      }, 500);
+      }, 450 / opts.scanSpeed);
       scanFrame(result);
     }
     document.querySelectorAll("[data-dtw-match]").forEach((node) =>
@@ -1429,10 +1426,9 @@
       score = scanScores[frame.candidateIndex],
       eligible = score != null,
       hit = eligible && score <= threshold;
-    const rows = snapshot.rows.slice(
-        opts.zoom ? opts.period : 0,
-        opts.zoom ? opts.period + opts.zoom : undefined,
-      ),
+    const pageSpan = Math.max(1, opts.zoom - c.size),
+      focusedStart = opts.zoom ? Math.max(0, Math.min(snapshot.rows.length - opts.zoom, r.index + Math.floor(Math.max(0, c.index - r.index) / pageSpan) * pageSpan)) : 0,
+      rows = snapshot.rows.slice(focusedStart, opts.zoom ? focusedStart + opts.zoom : undefined),
       x = (day) =>
         55 +
         ((A.time(day) - A.time(rows[0].date)) /
@@ -1468,6 +1464,7 @@
       );
     }
     const moving = $("moving-window");
+    moving.style.transitionDuration = `${(450 / opts.scanSpeed) * 0.9}ms`;
     moving.style.transform = `translateX(${((x(c.first) - dayWidth / 2) * moving.ownerSVGElement.viewBox.baseVal.width) / 900}px)`;
     moving.setAttribute("stroke", hit ? C[4] : C[1]);
     moving.setAttribute("fill", hit ? "#f8cb721a" : "#ae9cff1a");
@@ -1608,6 +1605,7 @@
       "radius",
       "historyLag",
       "regressionLag",
+      "scanSpeed",
       "window",
       "candidateWindow",
       "referenceStep",
@@ -1625,7 +1623,7 @@
     if (key === "zoom") opts.period = 0;
     if (key === "window") opts.candidateWindow = 0;
     if (key === "map" || key === "space") mapRevision++;
-    render();
+    render({ preserveScan: key === "scanSpeed" });
   });
   document.addEventListener("keydown", (e) => {
     if (
