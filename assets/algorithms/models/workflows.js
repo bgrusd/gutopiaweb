@@ -215,6 +215,8 @@ function runScenarioExecution(s, { inputDate = s.asOfDate, changes = null } = {}
   const scenarios = runScenarioGeneration(s).scenarios.map(scenario => {
     const j = s.featureNames.indexOf(scenario.feature), low = base.slice(), high = base.slice();
     low[j] = scenario.low; high[j] = scenario.high;
+    // Supplying a hypothetical value resolves only that scenario input.
+    low[j + s.featureNames.length] = 0; high[j + s.featureNames.length] = 0;
     const [lowPrediction, highPrediction] = model.predict([low, high]);
     return { ...scenario, lowPrediction: round(lowPrediction), highPrediction: round(highPrediction), difference: round(highPrediction - lowPrediction) };
   });

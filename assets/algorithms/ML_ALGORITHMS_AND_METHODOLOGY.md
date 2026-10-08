@@ -87,6 +87,8 @@ An empty pain field is not a pain score of zero. No recorded food does not prove
 
 Unrecorded inputs have separate missingness indicators. The base prediction fit represents their numeric value as zero while also providing the missingness flag, so it can distinguish unknown from recorded zero. Pain and other unknown outcomes stay unknown. Optional Monte Carlo draws replace missing input values and mark those sampled inputs available to the temporary model only; they never replace symptom outcomes or write simulated values into logs. The complete seeded fixture has deliberately generated inputs.
 
+The missing-data audit uses the same 366-day SQLite snapshot across all 23 workflows: 20 run, while the three advanced cascades correctly refuse incomplete states. The 1- and 3-day event models fit; the 7-day model retains its known answers but cannot fit because its training answers contain only one class. Both edited and automatically generated scenarios clear the unknown flag for the supplied hypothetical input only. The original logs and other unknown inputs remain unchanged.
+
 ### 4.3 Putting different units on a comparable scale
 
 Energy, binary indicators and other inputs can have different ranges. **Standardization** subtracts a column's average and divides by its standard deviation: `z = (x - mean) / standardDeviation`. This prevents a large numeric range from automatically dominating a distance or coefficient penalty. A binary column may also be standardized; when an indicator is rare, that changes what a one-unit coefficient means.
