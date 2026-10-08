@@ -48,6 +48,10 @@ const url = process.env.LAB_URL || "http://127.0.0.1:8767/algorithms.html";
     await page.waitForTimeout(800);
     assert.equal(await page.locator("#scan-slider").inputValue(), before);
     await page.locator('[data-option="window"]').selectOption("7");
+    await page
+      .locator("#fixed-reference-label")
+      .filter({ hasText: "7-day" })
+      .waitFor();
     await page.locator("#scan-reference").click();
     await page.locator("#scan-next").click();
     const pausedScan = async () => ({
@@ -61,7 +65,10 @@ const url = process.env.LAB_URL || "http://127.0.0.1:8767/algorithms.html";
     assert.equal(paused.action, "Play scan");
     for (const width of [390, 1024]) {
       await page.setViewportSize({ width, height: 844 });
-      await page.locator("#fixed-reference-label").waitFor();
+      await page
+        .locator("#run-status")
+        .filter({ hasText: "Computed locally" })
+        .waitFor();
       assert.deepEqual(await pausedScan(), paused);
     }
     await page.locator("#choose-question").click();
