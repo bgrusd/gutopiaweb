@@ -1,0 +1,16 @@
+{
+  "appCommit": "32dee77930aae923cc88f6661ce1d65ae41a2349",
+  "workingTree": true,
+  "modules": {
+    "math": "6a590cadbc3f1cad0701712856323382fa83c93b4f0691b164c38be15c1f56cb",
+    "dataset": "9ba6661bde51f016bc76560c3f04f1ceb315be5000b11f445b807ff1c425030a",
+    "dayEmbedding": "a162190af2a152f9f295a754f37d3c5b6a1a84269b089d941a1b102defe56545",
+    "relationships": "0ca1c13f88bb51679ec362cf6044b2aa74fee485316a5a53578474d86124ef08",
+    "visualization": "a2a40752a96bc997adda43329b8b8075ad9b2ae0239fe675827391d6f296ee5d",
+    "projection": "13005c25435f9fd477a7ca9f75215d2457dbf81ff5f65a3967c305bb8e352fc0",
+    "workflows": "60f5f0017d3fcc4c7edc6e97d3faaa042938728b48a6a9d5d421061ed267c068",
+    "catalog": "01a9d48ed0ba2be9edd0dd24d8a4360afe9d8db54e6c8977562ce9282476aa66",
+    "sensitivity": "3e1347bab99f9cd6effbcf0a0bddd0ebec1fcffb564719926a2f02699fc8782d"
+  },
+  "umapVersion": "1.4.0"
+}

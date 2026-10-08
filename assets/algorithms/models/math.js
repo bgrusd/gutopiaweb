@@ -64,6 +64,39 @@ function pca(X, components = 2, fitted) {
   const loadings = selected.map(i => V.map(row => row[i]));
   return { means, loadings, eigenvalues: eigenvalues.slice(0, selected.length), explainedVariance: eigenvalues.slice(0, selected.length).map(x => total ? x / total : 0), scores: centered.map(row => loadings.map(v => dot(row, v))) };
 }
+// Orthogonal power iteration on the centered covariance operator. Avoids a
+// full eigendecomposition when a lagged day has hundreds of input columns.
+function leadingPca(X, components = 5) {
+  validateMatrix(X);
+  const n = X.length, p = X[0].length;
+  const means = X[0].map((_, j) => mean(X.map(row => row[j])));
+  const Z = X.map(row => row.map((value, j) => value - means[j]));
+  const total = Z.reduce((sum, row) => sum + dot(row, row), 0) / Math.max(1, n - 1);
+  const loadings = [], eigenvalues = [], rng = random(42);
+  const orthogonalize = vector => {
+    for (const axis of loadings) { const projection = dot(vector, axis); vector = vector.map((value, j) => value - projection * axis[j]); }
+    const norm = Math.sqrt(dot(vector, vector));
+    return norm > 1e-12 ? vector.map(value => value / norm) : null;
+  };
+  const multiply = vector => {
+    const next = Array(p).fill(0);
+    for (const row of Z) { const value = dot(row, vector) / Math.max(1, n - 1); for (let j = 0; j < p; j++) next[j] += row[j] * value; }
+    return next;
+  };
+  for (let component = 0; component < Math.min(components, p); component++) {
+    let vector = orthogonalize(Array.from({ length: p }, () => rng() - 0.5));
+    if (!vector) break;
+    for (let iteration = 0; iteration < 250; iteration++) {
+      const next = orthogonalize(multiply(vector));
+      if (!next) break;
+      const similarity = Math.abs(dot(vector, next)); vector = next;
+      if (1 - similarity < 1e-10) break;
+    }
+    const eigenvalue = Math.max(0, dot(vector, multiply(vector)));
+    loadings.push(vector); eigenvalues.push(eigenvalue);
+  }
+  return { means, loadings, eigenvalues, explainedVariance: eigenvalues.map(value => total ? value / total : 0), scores: Z.map(row => loadings.map(axis => dot(row, axis))) };
+}
 function regression(X, y, { lambda = 0.04, l1Ratio = 0.5, iterations = 300 } = {}) {
   validateMatrix(X);
   if (y.length !== X.length || y.some(x => !Number.isFinite(x))) throw new Error('Invalid regression targets.');
@@ -174,7 +207,7 @@ function dbscan(X, epsilon = 0.7, minPoints = 4) {
   return { labels, clusters: cluster, noise: labels.filter(x => x === -1).length };
 }
 // Banded DTW with squared local costs. Rolling rows use O(m) memory.
-function dtw(a, b, band = Math.max(a.length, b.length), rolling = false) {
+function dtw(a, b, band = Math.max(a.length, b.length), rolling = false, localCost = (x, y) => (x - y) ** 2) {
   if (!a.length || !b.length) throw new Error('DTW requires two nonempty sequences.');
   band = Math.max(band, Math.abs(a.length - b.length));
   const D = rolling ? null : Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(Infinity));
@@ -182,7 +215,7 @@ function dtw(a, b, band = Math.max(a.length, b.length), rolling = false) {
   if (D) D[0][0] = 0;
   for (let i = 1; i <= a.length; i++) {
     const current = Array(b.length + 1).fill(Infinity);
-    for (let j = Math.max(1, i - band); j <= Math.min(b.length, i + band); j++) current[j] = (a[i - 1] - b[j - 1]) ** 2 + Math.min(previous[j], current[j - 1], previous[j - 1]);
+    for (let j = Math.max(1, i - band); j <= Math.min(b.length, i + band); j++) current[j] = localCost(a[i - 1], b[j - 1]) + Math.min(previous[j], current[j - 1], previous[j - 1]);
     if (D) D[i] = current;
     previous = current;
   }
@@ -198,4 +231,4 @@ function dtw(a, b, band = Math.max(a.length, b.length), rolling = false) {
   }
   return { distance: Math.sqrt(previous[b.length]), path };
 }
-module.exports = { mean, variance, dot, distance, random, clamp, standardize, pearson, pca, regression, logistic, gaussianNB, bernoulliNB, kmeans, dbscan, dtw };
+module.exports = { mean, variance, dot, distance, random, clamp, standardize, pearson, pca, leadingPca, regression, logistic, gaussianNB, bernoulliNB, kmeans, dbscan, dtw };

@@ -1,0 +1,14 @@
+{
+  "name": "gutopia-algorithm-lab",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-algorithms.cjs",
+    "check": "node scripts/check-algorithms.cjs"
+  },
+  "dependencies": {
+    "umap-js": "1.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

@@ -2,7 +2,7 @@
 
 Reviewed October 6; verification and deployment status updated October 7, 2026. This guide explains the coursework algorithms in everyday language, then shows the mathematics, implementation choices and evidence behind them. All demonstrations belong **inside the same app, on demo data**.
 
-**Current status:** all **23 demonstrations** are available through direct functions in `demoAlgorithms/workflows.js` and the Demo Algorithms menu. The automated app suite passes **317 tests across 32 suites**. Those tests include real numerical calculations, selection of all 23 demonstrations in the UI, SQLite integration, lifecycle behavior and feature checks. The final iOS JavaScript/Hermes export and a Debug simulator build succeeded; simulator startup logs also verified JavaScript execution and fresh database initialization. Manual screen navigation and native-device release checks remain pending.
+**Current status:** all **23 demonstrations** are available through direct functions in `demoAlgorithms/workflows.js` and the Demo Mode **ML Lab** tab. The automated app suite passes **367 tests across 38 suites**. Those tests include real numerical calculations, selection of all 23 demonstrations in the UI, SQLite integration, lifecycle behavior and feature checks. JavaScript/Hermes export and native Debug/Release simulator builds succeeded; simulator startup logs also verified JavaScript execution and fresh database initialization. Approved browser clicks exercised the actual ML screen source across phone and tablet layouts, including question navigation, relationship inspection, date/lag selections, UMAP, as-of fitting, scenarios and DTW playback. Native Release builds are installed on both QA simulators. Native manual navigation and device release checks remain pending because Device Hub control is failing.
 
 There are two implementations to understand. **Archived implementation** means the original coursework code preserved in Git. **Current demo** means the simpler implementation now in the app. The current version keeps the algorithm families and their educational value, with explicit changes to some targets, data preparation and numerical methods. It does not reproduce every historical behavior byte for byte. Section 10 explains the differences.
 
@@ -10,7 +10,11 @@ There are two implementations to understand. **Archived implementation** means t
 
 Gutopia grew from a machine-learning class project into a personal symptom, food and medication tracker. Both purposes can live in one app. The tracker records what happened; Demo Mode lets you explore what the algorithms do on a simulated dataset whose rules we know.
 
-You do not need to understand every equation before trying a demonstration. Start with **what it does**, look at **how the current demo works**, and use **how to read the result** to interpret the output. The mathematical detail is there when you want to inspect how the code reaches its answer. Future editable simulation controls can use the same direct execution route.
+You do not need to understand every equation before trying a demonstration. Start with **what it does**, look at **how the current demo works**, and use **how to read the result** to interpret the output. The mathematical detail is there when you want to inspect how the code reaches its answer. Editable scenarios execute that same direct route using only history through the chosen date.
+
+In the latest local build, activate Demo Mode and open **ML Lab**. A slide-in **Choose a question** drawer offers ten everyday questions: timeline exploration, next-day/three-day/week event probability, repeating patterns, food/medication regression, same-day relationships, earlier measurements, K-means groups, DBSCAN groups, edited scenarios and food/medication comparisons. The drawer closes so charts fill the available width. **Explore all methods** exposes the 23 underlying workflows. **Dataset options → Use complete teaching history** chooses a complete fixture without writing it into the database. Formulas and raw calculations stay behind optional controls.
+
+The lab reads the complete available history, including calendar dates where nothing was logged. The October 7 QA database contains 366 calendar days, 108 recorded pain values and 36 descriptors. Overall pain takes precedence; otherwise the adapter uses the maximum actually recorded on the body map. Unknown pain never becomes a recorded zero. Twenty workflows run on this sparse history, including missingness-aware autoregression. The three recursive cascades remain optional advanced examples requiring complete states. The weekly event training partition contains only one outcome class and therefore shows known answers without inventing a probability fit.
 
 Keep three different questions in mind:
 
@@ -73,7 +77,7 @@ The old “19 algorithms” description does not match the 18 main registrations
 
 Imagine a spreadsheet with one dated observation per row. A **feature** is a value the model can use as an input, such as energy or a simulated food indicator. A **target** is the answer we want it to learn, such as tomorrow's simulated pain. In the mathematics, `X` is the input table and `y` is the matching list of answers. Each row of `X` must line up with the correct entry in `y`.
 
-The archived adapter translated SQLite columns into fields such as `entryDate`, `painIntensity`, `moodValence`, `moodArousal`, `energyPhysical`, `energySocial`, `bowelFrequency`, `bowelBlood`, `healthScore` and `compositeScore`. It added `tagFeatures`, `medicationFeatures` and `lagFeatures`. A **lag** is an earlier value: the archived default lags were 1, 3 and 7 days. The current demo uses a smaller, explicit feature list described in section 10.
+The archived adapter translated SQLite columns into fields such as `entryDate`, `painIntensity`, `moodValence`, `moodArousal`, `energyPhysical`, `energySocial`, `bowelFrequency`, `bowelBlood`, `healthScore` and `compositeScore`. It added `tagFeatures`, `medicationFeatures` and `lagFeatures`. A **lag** is an earlier value: the archived default lags were 1, 3 and 7 days. The current adapter exposes the available descriptors and explicitly adds exact-calendar 1/3/7-day history, described in section 10.
 
 A **horizon** is how far ahead a prediction looks. Pairing inputs at day `t` with an answer at `t+h` predicts an endpoint. Asking whether anything happened during the next `h` days is a different target. If Tuesday is missing, Wednesday must not become Monday's “tomorrow.” If a required future day or interval is unavailable, its answer is unknown and that sample cannot train that target.
 
@@ -81,7 +85,7 @@ A **horizon** is how far ahead a prediction looks. Pairing inputs at day `t` wit
 
 An empty pain field is not a pain score of zero. No recorded food does not prove the food was absent. No medication record does not establish a skipped dose. **Imputation** means filling a missing value with an assumption; it needs to be visible because it changes the data used by the model.
 
-The current demo-log adapter fills missing feature values with zero. That limitation is disclosed in the app and in section 10. Missing pain stays missing. The complete seeded fixture avoids absent-feature ambiguity because all its inputs are generated deliberately. Any future missing-value sampling should remain marked as simulation and separate from the original records. Predictions must never become personal symptom observations.
+Unrecorded inputs have separate missingness indicators. The base prediction fit represents their numeric value as zero while also providing the missingness flag, so it can distinguish unknown from recorded zero. Pain and other unknown outcomes stay unknown. Optional Monte Carlo draws replace missing input values and mark those sampled inputs available to the temporary model only; they never replace symptom outcomes or write simulated values into logs. The complete seeded fixture has deliberately generated inputs.
 
 ### 4.3 Putting different units on a comparable scale
 
@@ -155,7 +159,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `PCAAnalysis.execute` called `applyPCA`, which used random starting vectors, power iteration and orthogonalization. It returned centered data `Xc`, projected data `Z`, means, directions and explained-variance fractions, with component count or retained variance controlling compression.
 
-**Current demo and outputs.** `runPca` standardizes the six demo inputs and shows three components, loadings, projected points and variance fractions. The current kernel uses **Jacobi eigenanalysis**, which removes covariance off-diagonal terms through rotations. This is a different numerical method from the archive. Tests check a known rank-one fixture, orthogonal/unit directions, an eigenvalue and reuse of the fitted transform.
+**Current demo and outputs.** `runPca` embeds each calendar day using current measurements and 1-, 3- and 7-day histories, plus separate missingness flags. Five leading PCA summaries are computed with orthogonal power iteration; the map shows the first two. The observed column mean is used only for distances when a measurement is unknown, with its separate flag weighted 0.25. Original records continue to say Not logged. The small-matrix Jacobi solver remains available and provides an independent numerical reference.
 
 **How to read it.** A component can summarize several inputs without predicting pain. Reversing a component's sign leaves its meaning unchanged; nearly tied variances can also rotate directions. Judge the recovered space and reconstruction, rather than demanding identical signs. Device visualization remains to be checked.
 
@@ -179,7 +183,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `DBSCANPCAClusteringAnalysis` advertised **Gower distance**, which combines mixed continuous/binary comparisons, along with score bins, adaptive epsilon and PCA visualization. The historical name did not imply that clustering itself happened in the PCA plot. Tiny datasets also had fallback outputs.
 
-**Current demo and outputs.** `runDbscan` standardizes inputs, keeps the first two PCA coordinates, then uses ordinary Euclidean distance in that plane. Defaults are epsilon 0.7 and at least four neighbors, counting the point itself. It returns memberships and projected points; noise has label -1. Historical outputs included representative descriptions and distance settings.
+**Current demo and outputs.** `runDbscan` groups the full scaled day/history vectors by default; a control selects five PCA summaries instead. Euclidean radius defaults to the median third-neighbour distance excluding the point itself (fourth including self), with a 0.7/1/1.4 multiplier control; minimum four points includes self. Noise is −1. PCA or seeded UMAP draws the map after grouping. Changing that drawing preserves every membership. Tap a dot for original entries and exact 1/3/7-day history; group profiles compare recorded averages with the full history.
 
 **How to read it.** The groups answer a geometric question under these settings. Changing scale or radius can change them substantially. A group is not a discovered disease state. Current PCA-space clustering is deliberately different from archived Gower-space clustering; confirm memberships independently of how attractive the plot looks.
 
@@ -191,7 +195,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `KMeansPCAClusteringAnalysis` aggregated mixed features, searched possible K values using elbow/silhouette-style criteria, and supplied PCA plotting data. Metadata defaulted to searching up to eight groups and included minimum-size safeguards.
 
-**Current demo and outputs.** `runKMeans` uses a reproducible, distance-weighted initialization and fixes **K = 3** in the first two PCA coordinates. Outputs include assignments, centers and projected data. The routine makes at most 60 iterations; an empty group keeps its previous center, so constant data may occupy fewer than three groups.
+**Current demo and outputs.** `runKMeans` uses reproducible distance-weighted initialization in the full scaled day/history vectors, or five PCA summaries when selected. K defaults to 3 and the UI offers 2–5 groups. It returns assignments, centers and inertia; PCA/UMAP only draw the fitted memberships. The routine uses at most 60 iterations. Constant data can occupy fewer groups than requested. More dimensions, a cleaner drawing or a larger K do not establish better grouping.
 
 **How to read it.** Compare it with DBSCAN: K-means assigns points to centers, while DBSCAN can leave noise unassigned. Group numbers are arbitrary and can swap between runs, so compare who is grouped together rather than exact numeric labels. A neat plot does not prove meaningful full-data groups.
 
@@ -203,11 +207,11 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `DTWPatternMatching.execute` accepted entries or an object containing `entries/rawEntries`, built windows, filtered similarities and suppressed overlapping matches. It produced pattern groups and alignment data. A truthiness fallback could replace score zero with 50. The overlap-suppression IoU threshold of 0.01 was unusually strict and should not become an unexplained hidden rule.
 
-**Our sliding-window approach.** A **window** is a short, contiguous slice of the timeline: here, seven consecutive calendar days with pain recorded. The search takes one seven-day slice, compares it with later seven-day slices that do not overlap it, then moves the starting position forward by three rows and repeats. Both slices are checked for consecutive dates, so the search skips candidates with missing days rather than squeezing a gap into a week. This is a sampled search across possible weeks, not every possible daily starting position.
+**Our sliding-window approach.** Hold a reference window fixed and sweep comparison windows from the day immediately after its end through later dates. Advance the reference by 1–4 calendar days and repeat. The four lengths are 3/5/7/14 days; automatic playback compares equal lengths, while selected controls can compare compatible unequal lengths. Calendar gaps remain positions. Every start appears in playback, with periods containing fewer than two ratings visibly skipped for pain scoring. The default fixed 35-day panel makes movement legible; a period selector, 70-day panel and full-history view are available. Rankings always search the complete history. Each unordered eligible pair is scored once. Banded dynamic programming reuses cells inside each comparison; no claim is made that every overlapping-window DP grid is reused.
 
-**Current demo and outputs.** `runDtw` scores each valid pair using DTW with band 2, allowing up to two positions of local time displacement in these equal-length windows. It ranks pairs by increasing distance and keeps the **best five matches**. The output includes both start dates, the two sets of pain values, the distance and a full alignment path, plus how many pairs were compared. The path shows which points were paired; lower distance means less mismatch under this specific rule. Two reported matches may reuse a window—the non-overlap rule applies to the two windows inside a pair, not to the whole list of results.
+**Current demo and outputs.** `runDtw` scores each valid pair using DTW with band 2, using a two-position band that expands to admit unequal-length endpoints. It ranks pairs by length-normalized score and keeps the **best five matches**. The output includes both start dates, the two sets of pain values, the distance and a full alignment path, plus how many pairs were compared. The path shows which points were paired; lower distance means less mismatch under this specific rule. Two reported matches may reuse a window—the non-overlap rule applies to the two windows inside a pair, not to the whole list of results.
 
-**How to read it.** A match means “these two simulated weeks have similar shapes after the allowed time alignment.” It does not mean the weeks are correlated in the statistical sense, share a cause or predict a recurrence. Searching many windows creates opportunities for chance resemblance. Test short exact paths and deliberately stretched/compressed patterns; do not compare different lengths without stating the normalization rule.
+**How to read it.** A match means “these two demo periods have similar observed-pain and logging shapes under the chosen alignment rule.” It does not mean the weeks are correlated in the statistical sense, share a cause or predict a recurrence. Searching many windows creates opportunities for chance resemblance. Test short exact paths and deliberately stretched/compressed patterns; do not compare different lengths without stating the normalization rule.
 
 ### 5.10 PCA followed by LASSO: predicting from compressed inputs
 
@@ -263,7 +267,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `FlarePredictionLogisticLasso.execute` fitted direct logistic-LASSO models for 3-, 7- and 14-day windows, using a default rule of `compositeScore > 5`. Latest module metadata explicitly said **no PCA**, despite stale engine text claiming PCA. Inference used normalized features, database lookups and missing-feature sampling.
 
-**Current demo and outputs.** `runFlareWindows` asks whether simulated pain is **at least 5 at the exact 3-, 7- or 14-day endpoint**. It uses **four training-fitted PCA components** before logistic fitting. It does not ask whether any event occurred anywhere inside those intervals. It shows endpoint labels, probabilities, projection/model details and held-out classification results. Both the PCA use and endpoint rule are deliberate differences from the archive.
+**Current demo and outputs.** `runFlareWindows` fits direct logistic models for at least one recorded pain ≥ 5 day within the next **1/3/7 calendar days**, using current and 1/3/7-day descriptor and pain history. An observed event establishes a positive label even if other dates are missing; a negative label requires every interval date observed without an event. Unknown outcomes remain on the calendar and cannot teach an answer. The historical chart distinguishes fitting from held-out dates. Its earlier estimates can use later training records, so **Calculate using history through this date** invokes `runFlareWindows(snapshot, { inputDate })` on records no later than that date. It exposes that fit’s separate holdout errors and does not silently label a retrospective fit as an as-of forecast.
 
 **How to evaluate it.** Exclude unavailable future endpoints. For a true interval label, exclude incomplete future intervals. Neither the answer itself nor later information can enter the inputs. Class frequencies can differ by horizon, so inspect each model separately.
 
@@ -273,7 +277,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **What it is and where it is used.** An autoregressive model predicts a time series from earlier values of that series. It is used to demonstrate repeating patterns, persistence and recursive forecasting. Think of using recent parts of a curve to extend it one step, then using that extension to take the next step.
 
-**How it works here.** `runAutoregressive` uses pain lags **1, 2, 3 and 7**, a trend and weekly sine/cosine terms in an ElasticNet regression. After reporting holdout results, it refits on all available observations and recursively predicts **14 days**. A predicted value becomes an input to later steps.
+**How it works here.** `runAutoregressive` uses exact-calendar pain lags **1/2/3/7**, four explicit missing-history flags, trend and weekly cycle terms. Unlogged days stay in the input history; only known outcome dates train or evaluate the model. It reports later one-step MAE/RMSE and a mean-rating baseline, then refits known outcomes and recursively predicts 14 future dates. Those recursive errors have not been separately measured.
 
 **Why the old ARIMA name needs care.** Full ARIMA(p,d,q) includes autoregression, differencing and moving-average error terms. Seasonal ARIMA adds seasonal orders. The archive's name did not establish all those operations; its actual feature model was described as “AR(3) with weekly seasonality.” [ARIMA model specification](https://www.statsmodels.org/stable/generated/statsmodels.tsa.arima.model.ARIMA.html)
 
@@ -289,7 +293,7 @@ To reproduce a fitted model, keep its feature order, means/scales, coefficients,
 
 **Archived implementation.** `TriggerAnalysis.execute` sorted entries, created date lookups, calculated baseline and delayed differences, and ranked exposures. Defaults required three occurrences and examined up to three effect days. These were demonstration settings, not general statistical standards.
 
-**Current demo and outputs.** `runTriggerAnalysis` compares next-day simulated pain after dairy, spicy and caffeine indicators and returns the difference between the two means plus both sample counts. The individual means are calculated internally but are not separate current output fields. The known generator makes this useful for checking whether the next-day alignment is correct. Historical output also supplied baseline values and explanatory charts.
+**Current demo and outputs.** `runTriggerAnalysis` now compares all available food and medication descriptors by default. `triggerComparison` is shared with the interactive view and accepts an input, selected symptom and exact-calendar delay 0/1/3/7. Binary measurements use recorded absence/presence; continuous measurements split at the recorded median. Both counts, original pairs/dates, averages and the difference are inspectable. Unlogged exposures are excluded, never interpreted as not consumed.
 
 **How to read it.** A positive difference says these simulated rows had higher subsequent pain on average. It does not show that changing a real exposure would change pain. Other exposures may coincide, logging may be selective, and missing records may change the comparison. The seeded fixture is complete; “not logged” in another dataset must not silently become “not consumed.”
 
@@ -375,7 +379,7 @@ These variants are preserved in revision **51a0536**. They show additional ideas
 
 **Archived implementation.** `SymptomCascadeModels.trainCascadeModels(entries, rawEntries, targetVariable, normalizationParams)` fitted supporting PCA/ElasticNet symptom models. `generateCascadePredictions(cascadeModels, dayPredictions, currentSymptoms)` chained predictions beyond directly available horizons. Inputs included historical symptom vectors, fitted transformations, direct forecasts and the current state.
 
-**Current demo and outputs.** `runPcaCascade` fits one-step models using **four training-fitted components** and predicts a state containing pain plus the six demo inputs. It then feeds its predicted state forward for a seven-step trajectory. It displays the resulting values and one-step evaluation. The six inputs are dairy, spicy, caffeine, fiber, medicationTaken and energy; they are not the archive's full symptom vector.
+**Current demo and outputs.** `runPcaCascade` fits one-step models using **four training-fitted components** and predicts a state containing pain plus the available descriptors (six in the complete fixture). It then feeds its predicted state forward for a seven-step trajectory. It displays the resulting values and one-step evaluation. The six inputs are dairy, spicy, caffeine, fiber, medicationTaken and energy; they are not the archive's full symptom vector.
 
 **How to read and test it.** Keep observed inputs distinct from predicted inputs. A model trained on real simulated observations can behave differently when fed its own estimates. The current holdout uses observed previous states, so it tests one step, not the whole recursive trajectory. Compare multi-step errors and numerical stability on a known dynamical fixture before claiming long-horizon performance. Appended predictions do not become new training observations.
 
@@ -496,12 +500,12 @@ The old flare model scored its training rows; the old autoregressive ranges were
 
 The source now separates inputs, mathematics, workflow steps and presentation:
 
-- **`demoAlgorithms/math.js`:** reusable calculations—seeded randomness, standardization, Pearson correlation, Jacobi PCA, coordinate-descent regression, proximal logistic regression, Bernoulli/Gaussian Naive Bayes, K-means, DBSCAN and full/rolling DTW.
+- **`demoAlgorithms/math.js`:** reusable calculations—seeded randomness, standardization, Pearson correlation, Jacobi and leading-component PCA, coordinate-descent regression, proximal logistic regression, Bernoulli/Gaussian Naive Bayes, K-means, DBSCAN and full/rolling DTW.
 - **`demoAlgorithms/dataset.js`:** makes immutable, explicitly demo-only snapshots; generates reproducible coursework data; and aligns input dates with exact target dates.
 - **`demoAlgorithms/loadDemoSnapshot.js`:** reads the demo database explicitly and adapts its logs. It does not ask for the active or personal database.
 - **`demoAlgorithms/seedDemoLogs.js`:** replaces demo records atomically with 150 recent days from the coursework fixture, including simulated exposures, pain, energy and medication taken/skipped logs.
 - **`demoAlgorithms/workflows.js`:** the 23 named direct handlers, with shared preparation and evaluation helpers.
-- **`components/analytics/DemoAlgorithmsPanel.js`:** the fixed menu, results, plots and full-result inspection. It renders no UI outside Demo Mode.
+- **`screens/MLLabScreen.js` and `components/analytics/lab/`:** the Demo-only tab, ten question entry points in a slide-in drawer, optional method catalog, animated DTW, full-history predictions, contextual comparisons and calculation sheet.
 
 Source inspection verifies these responsibilities, and the tests below exercise actual numerical paths, UI choices and production SQL. They do not substitute for a native device or signed release build.
 
@@ -511,22 +515,22 @@ All names in the middle column are exports of **`demoAlgorithms/workflows.js`**.
 
 | Documented workflow/variant | Direct handler | New behavior |
 |---|---|---|
-| LASSO | runLasso | One-day-ahead demo pain; L1-only regression |
-| ElasticNet regression | runElasticNet | One-day-ahead demo pain; mixed L1/L2 |
+| LASSO | runLasso | Selectable symptom, food/medication inputs and 0/1/3/7-day lag; L1 regression |
+| ElasticNet regression | runElasticNet | Selectable symptom/input groups and 0/1/3/7-day lag; mixed L1/L2 |
 | Logistic LASSO | runLogisticLasso | Binary demo pain threshold at one-day horizon |
-| Correlation | runCorrelation | Current features versus next-day pain, plus input correlation matrix |
-| PCA | runPca | Standardized six-feature projection; three components |
+| Correlation | runCorrelation | Recorded descriptor pairs, same-day and 1/3/7-day pain associations |
+| PCA | runPca | Current + 1/3/7-day descriptors and missingness flags; five PCA summaries |
 | Naive Bayes | runNaiveBayes | Binary Bernoulli classifier with training-derived input thresholds |
-| DBSCAN/PCA | runDbscan | Euclidean DBSCAN in the first two PCA coordinates |
-| K-means/PCA | runKMeans | Seeded K-means, fixed K = 3, in the first two PCA coordinates |
-| DTW | runDtw | Non-overlapping seven-day pain windows, band = 2, best five matches |
+| DBSCAN/PCA | runDbscan | Euclidean DBSCAN in the full day vector or five PCA summaries; PCA/UMAP display |
+| K-means/PCA | runKMeans | Seeded K-means, selectable K = 2–5, full vectors or five summaries; PCA/UMAP display |
+| DTW | runDtw | Non-overlapping 3/5/7/14-day calendar windows, missingness-aware cost, best five normalized matches |
 | PCA/LASSO | runPcaLasso | Training-only PCA then L1 regression |
 | PCA/ElasticNet horizons | runPcaElasticNet | Separate continuous-target models at 1/7/14 days |
 | PCA/logistic LASSO | runPcaLogistic | Training-only PCA then threshold classification |
 | ElasticNet horizons | runElasticNetForecast | Separate direct-feature models at 1/7/14 days |
-| Event horizon classifier | runFlareWindows | Threshold classification at 3/7/14-day endpoints |
+| Event horizon classifier | runFlareWindows | Any observed threshold event within the next 1/3/7 days |
 | Autoregressive forecast | runAutoregressive | Lags 1/2/3/7, trend and weekly sine/cosine; recursive 14-day pain forecast |
-| Trigger comparisons | runTriggerAnalysis | Next-day pain means after logged dairy/spicy/caffeine indicators |
+| Trigger comparisons | runTriggerAnalysis | Any logged food/medication, selected symptom and 0/1/3/7-day comparison |
 | Generate scenarios | runScenarioGeneration | Select three largest absolute feature correlations for low/high comparisons |
 | Execute scenarios | runScenarioExecution | Fit a direct model, hold other inputs fixed, compare modified predictions |
 | Earlier three-day classifier | runFlareThreeDay | Direct binary classifier at the three-day endpoint |
@@ -539,15 +543,11 @@ All names in the middle column are exports of **`demoAlgorithms/workflows.js`**.
 
 The simpler package keeps the families and all 23 menu entries while reducing hidden defaults and dependencies. The differences matter when describing what has been restored:
 
-1. **A visible simulated target.** Algorithms never read personal pain. They predict generated pain or pain from explicitly demo-only logs, rather than the old composite health-score formulas.
-2. **An endpoint is not a whole window.** The 3/7/14-day classifier checks pain at `t+h`, not whether anything happened between now and then. The standalone three-day classifier also uses this endpoint rule instead of its earlier three-part rule.
-3. **Four PCA components in the current multi-horizon classifier.** The latest archived flare model used direct inputs without PCA. The current `runFlareWindows` uses a training-fitted four-component projection and exposes that information. This is a deliberate variant.
+1. **Visible targets.** Algorithms never read personal records. Regression can select recorded pain, energy, bowel frequency, mood or appetite from demo logs; the original composite health-score formulas are not silently substituted.
+2. **A window event differs from an endpoint.** The primary logistic demo asks about an event anywhere in the next 1/3/7 days. The optional standalone three-day classifier still checks the exact three-day endpoint and says so.
+3. **Missingness is an input.** Prediction models include a missingness indicator for each descriptor. Missing outcomes remain unknown. The primary windowed logistic model uses direct inputs; optional PCA classification remains a separate method.
 4. **Different numeric forecast horizons.** Direct and PCA forecasts use 1/7/14 days instead of the old t+0 through t+7 sequence. Their current predictions come from models fitted to the training period. The autoregressive workflow separately refits after its holdout evaluation.
-5. **Different clustering geometry.** Current DBSCAN measures ordinary Euclidean distance in the PCA plane, not mixed-feature Gower distance with score bins. Current K-means fixes three centers instead of selecting K with elbow/silhouette comparisons.
-6. **A narrower DTW optimization.** Rolling memory preserves the chosen band's distance while omitting the full path. It does not recover every old pruning, beam-search or cache feature.
-7. **A smaller cascade state.** Current cascades predict pain plus six demo inputs, not the original eight symptom fields or `HealthScoring` output. The score variant displays only pain while retaining the same internal state family.
-8. **A binary Naive Bayes task.** Current inputs become on/off at their training means, and the target is binary. The archive used score-bin classes and binary trigger frequencies. A Gaussian helper is available as a different likelihood family, not another current menu demonstration.
-9. **Weights use standardized units.** A displayed coefficient describes a one-standard-deviation input change, or a standardized component change for PCA workflows. It is not a raw-unit effect of a food or medication and is not causal.
+5. **Different clustering geometry.** Grouping now uses the full scaled day/history vector or five PCA summaries, with selectable K or measured-neighbour DBSCAN radius. PCA and UMAP are separate display choices, with unchanged labels. This is Euclidean geometry, not the archived mixed-feature Gower distance; no automatic optimal-K claim is made.
 
 “23 workflows” therefore means 23 callable educational demonstrations, not 23 unrelated numerical solvers or 23 validated clinical models. The original source remains available when exact historical behavior is of interest.
 
@@ -561,15 +561,15 @@ These details explain how to reproduce the current answers and compare the code 
 
 **Logistic LASSO.** Minimize mean binary cross-entropy plus an L1 penalty. The intercept is unpenalized. The math helper defaults to `lambda = 0.02`, while current supervised workflow calls use `0.04`. The helper performs 400 proximal-gradient iterations with step `0.5 / featureCount`. Sigmoid scores are bounded to `[-35, 35]` for numerical stability. Both classes are required. A fixed iteration count bounds work but is not a full convergence test.
 
-**PCA.** After centering, use **sample covariance**, dividing by `n-1`, then Jacobi rotations and descending eigenvalue order. Rotations stop at an off-diagonal tolerance of `1e-10` or a limit of `100 × featureCount²`. A zero-variance matrix produces zero explained-variance fractions. Descriptive PCA uses its full snapshot; supervised PCA learns from training rows only and retains four components. This differs from both the archive's power-iteration method and the population-standard-deviation convention used for initial scaling.
+**PCA.** The Jacobi covariance eigensolver remains as an independent small-matrix routine. Current wide-vector workflows use `leadingPca`: centered sample-covariance matrix-vector products, seeded orthogonal power iteration, up to 250 iterations per component and convergence when `1 − abs(dot(previous,next)) < 1e−10`. Descriptive day maps retain five components; supervised models retain four fitted only on training rows. Tests compare known rank-two eigenvalues, orthogonality and projected energy with Jacobi.
 
 **Bernoulli Naive Bayes.** Input `j` is on when it **exceeds its training mean**. For class count `c` among `n` training rows, the smoothed prior is `(c+1)/(n+2)`. On/off likelihoods add one to their counts and use denominator `c+2`. Inference adds log likelihoods and maps the difference between the two class scores to a probability. The mean thresholds travel with the fitted model.
 
-**K-means.** Starting centers are seeded and distance-weighted. Assign by Euclidean distance, move centers to group means, and repeat for at most 60 iterations. The workflow uses `K = 3`; empty groups keep their previous center. Three requested centers do not guarantee three occupied groups on constant data.
+**K-means.** Starting centers are seeded and distance-weighted. Assign by Euclidean distance, move centers to group means, and repeat for at most 60 iterations. The workflow defaults to `K = 3` with selectable 2–5; empty groups keep their previous center. Three requested centers do not guarantee three occupied groups on constant data.
 
-**DBSCAN.** Use Euclidean distance in two PCA coordinates, `epsilon = 0.7` and `minPoints = 4`, including the point itself. Noise is `-1`. These are demonstration settings, not tuned health-data parameters.
+**DBSCAN.** Group the full scaled vector or five PCA summaries. Default radius is the median third-neighbour distance excluding self, with a minimum 0.01 and a selectable multiplier. Minimum four points includes self. Noise is −1. These exploratory settings are not clinically tuned parameters.
 
-**DTW.** Use squared point differences, the three-predecessor recurrence in section 5.9, and the square root of final cost. Do **not** divide by path length. Current windows are seven days with band 2; rolling memory keeps distance rows without the full alignment path. For equal settings, full and rolling kernels should agree on distance even though their returned paths differ.
+**DTW.** The reusable kernel defaults to squared differences and square-root total cost. The lab supplies an explicit logging-pattern local cost: two missing values cost 0; missing versus measured costs 25; two measured values cost their squared difference. This custom missingness rule does not estimate missing pain. The displayed cross-length score is `sqrt(total cost / longer window length)`, not a path-length-normalized objective. Band 2 expands when necessary to reach unequal-length endpoints. Rolling rows rank all pairs; full mode reconstructs the five winning paths. Full and rolling modes give the same score. For short windows the memory saving is modest; the path is useful for teaching and explaining matches.
 
 The routines bound work but do not yet return a comprehensive convergence and parameter-provenance record. This is a real limitation: a finite answer after a fixed number of updates should not be described as fully optimized without further diagnostics.
 
@@ -585,11 +585,13 @@ Settings now calls **`seedDemoLogs`** rather than the old placeholder. Given an 
 
 The seeder writes clearly named simulated foods, one simulated medication with no notification times, daily taken/skipped logs, pain, energy and a note marking the rows as examples. Each day has a plain meal carrying its generated fiber amount; extra foods supply selected dairy/spicy/caffeine tags. Loading these seeded logs therefore rebuilds complete features without assuming that absent logs mean zero. It does not read personal records or fill gaps in personal data.
 
-Calculations retain at most the latest **180 rows**. Supervised samples require exact calendar target dates. Most supervised workflows use an **80/20 chronological holdout**, excluding a horizon-sized number of candidate pairs before the split and fitting scaling/PCA on training rows. On the complete fixture this is a corresponding calendar gap. Missing dates can additionally remove pairs, so the current pairing rules are intentionally stricter than simply accepting the next recorded row. PCA-only and clustering demonstrations describe the supplied dataset rather than predicting future answers, so they can use the whole snapshot.
+The demo-log adapter retains the complete available history and explicitly inserts unlogged calendar dates. Standalone fixture construction defaults to a 180-row limit unless the caller requests the full history. Supervised samples require exact calendar target dates. Most supervised workflows use an **80/20 chronological holdout**, excluding a horizon-sized number of candidate pairs before the split and fitting scaling/PCA on training rows. On the complete fixture this is a corresponding calendar gap. Pairing looks up the actual target date; it never treats the next recorded row as the next calendar day. PCA-only and clustering demonstrations describe the supplied dataset rather than predicting future answers, so they can use the whole snapshot.
 
 The AR workflow and cascades report **one-step holdout errors with observed lag/state inputs**. Their later steps use their own predictions, a harder problem whose errors can accumulate. Those scores do not measure the complete seven- or fourteen-step forecast. Scenario differences likewise describe model behavior, not independently measured intervention outcomes.
 
-**Current-demo-log limitation:** the adapter fills unrecorded features—including exposures and energy—with zero. That is an imputation assumption, not proof of absence. Seeded coursework data is complete by construction; other demo logs need a visible completeness policy before their patterns are interpreted. Missing pain remains missing rather than becoming zero.
+**Missing-input assumptions:** the base fit supplies zero plus an explicit unknown flag for an unrecorded descriptor. Logged nutrition describes logged foods, not proof of complete daily intake. A named medication without a log remains unknown, rather than a skipped dose. Body-map pain is an observed measurement; the peak fallback is not an invented overall rating.
+
+**Optional Monte Carlo:** turn on **Try 40 variations (Monte Carlo)** for a supported prediction workflow. Forty seeded draws sample only observed input values from that model’s training rows; multi-horizon fits use the intersection of their training partitions. The original snapshot, dates, observed inputs and symptom outcomes remain fixed. In each temporary draw, the sampled feature mask is cleared so the lagged model actually reads the sampled value. Integration tests verify a real LASSO prediction changes across draws. This shows how much a result depends on the missing-input assumptions. It costs forty additional local fits and samples features independently, which does not preserve their correlations or explain why an entry was missing. The middle 90% of simulated predictions is sensitivity spread, not a calibrated confidence interval. A feature with no observed training values has no donor distribution; the app explains this rather than making one up. This new control does not restore every historical Monte Carlo implementation.
 
 ### 10.6 What has actually been verified
 
@@ -611,7 +613,7 @@ npx jest __tests__/database.integration.test.js __tests__/demoAlgorithms.test.js
 
 These are meaningful checks on stated fixtures. They do not establish every possible input, exact historical parity, clinical validity or device speed. The focused 41-test command is separate from the full-suite record.
 
-**Full app suite:** `npx jest --runInBand` passed **317 tests across 32 suites**, including choosing and executing every demonstration through the React Native panel. Tests also seed the complete fixture into SQLite, run all 23 workflows from those stored logs, and force a populate failure to verify rollback preserves prior demo data.
+**Full app suite:** `npx jest --runInBand` passed **367 tests across 38 suites**, including choosing and executing every demonstration through the React Native panel. Tests also seed the complete fixture into SQLite, run all 23 workflows from those stored logs, and force a populate failure to verify rollback preserves prior demo data.
 
 **iOS JavaScript bundle:** the final offline iOS export succeeded with a 6.9 MB Hermes bundle and 88 assets. The verified export route is `CI=1 npx expo export --platform ios --output-dir .expo/verified-ios-export`. It checks JavaScript and asset packaging. It is not an Xcode archive, signed TestFlight build or native-device pass. No development server was left listening on port 8081.
 
